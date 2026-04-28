@@ -1,0 +1,69 @@
+{
+    "version": 8,
+    "name": "OSM Raster + Vector Labels",
+    "center": [139.7670, 35.6814],
+    "zoom": 4,
+    "sources": {
+        "osm-raster": {
+            "type": "raster",
+            "tiles": [
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "maxzoom": 19,
+            "attribution": "\u00a9 OpenStreetMap contributors"
+        },
+        "demotiles": {
+            "type": "vector",
+            "url": "https://demotiles.maplibre.org/tiles/tiles.json"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#aad3df"
+            }
+        },
+        {
+            "id": "osm-tiles",
+            "type": "raster",
+            "source": "osm-raster",
+            "paint": {
+                "raster-opacity": 1.0
+            }
+        },
+        {
+            "id": "countries-fill",
+            "type": "fill",
+            "source": "demotiles",
+            "source-layer": "countries",
+            "maxzoom": 6,
+            "paint": {
+                "fill-color": "transparent",
+                "fill-outline-color": "#9e9cab"
+            }
+        },
+        {
+            "id": "country-labels",
+            "type": "symbol",
+            "source": "demotiles",
+            "source-layer": "centroids",
+            "maxzoom": 6,
+            "layout": {
+                "text-field": "{NAME}",
+                "text-size": {
+                    "stops": [[0, 2.5], [2, 5], [4, 12.5], [6, 25]]
+                }
+            },
+            "paint": {
+                "text-color": "#333",
+                "text-halo-color": "rgba(255, 255, 255, 0.8)",
+                "text-halo-width": 1.5
+            }
+        }
+    ]
+}

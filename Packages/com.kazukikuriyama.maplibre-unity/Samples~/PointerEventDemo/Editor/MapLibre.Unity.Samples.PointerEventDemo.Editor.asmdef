@@ -1,0 +1,19 @@
+{
+    "name": "MapLibre.Unity.Samples.PointerEventDemo.Editor",
+    "rootNamespace": "MapLibre.Unity.Samples.PointerEventDemoEditor",
+    "references": [
+        "MapLibre.Unity",
+        "MapLibre.Unity.Samples"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

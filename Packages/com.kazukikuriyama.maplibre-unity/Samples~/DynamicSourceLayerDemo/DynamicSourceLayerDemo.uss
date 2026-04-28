@@ -1,0 +1,85 @@
+.demo-panel {
+    position: absolute;
+    bottom: 40px;
+    left: 10px;
+    width: 280px;
+    background-color: rgba(20, 20, 20, 0.88);
+    border-radius: 8px;
+    padding: 12px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.demo-title {
+    font-size: 14px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+.demo-section-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 6px;
+    margin-bottom: 2px;
+    -unity-font-style: italic;
+}
+
+.demo-button {
+    height: 32px;
+    margin: 2px 0;
+    border-radius: 4px;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(55, 71, 133);
+    border-width: 0;
+    -unity-text-align: middle-center;
+}
+
+.demo-button:hover {
+    background-color: rgb(72, 92, 168);
+}
+
+.demo-button:active {
+    background-color: rgb(40, 53, 100);
+}
+
+.demo-button--danger {
+    background-color: rgb(140, 40, 40);
+}
+
+.demo-button--danger:hover {
+    background-color: rgb(170, 55, 55);
+}
+
+.demo-button--danger:active {
+    background-color: rgb(110, 30, 30);
+}
+
+.demo-button--info {
+    background-color: rgb(50, 100, 80);
+}
+
+.demo-button--info:hover {
+    background-color: rgb(65, 125, 100);
+}
+
+.demo-button--info:active {
+    background-color: rgb(38, 78, 62);
+}
+
+.demo-button:disabled {
+    background-color: rgb(60, 60, 60);
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.demo-log {
+    font-size: 10px;
+    color: rgba(180, 255, 180, 0.9);
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    padding: 6px;
+    margin-top: 8px;
+    min-height: 60px;
+    white-space: normal;
+}

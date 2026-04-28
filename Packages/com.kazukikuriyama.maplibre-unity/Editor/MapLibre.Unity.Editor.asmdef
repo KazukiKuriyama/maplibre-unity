@@ -1,0 +1,20 @@
+{
+    "name": "MapLibre.Unity.Editor",
+    "rootNamespace": "MapLibre.Unity.Editor",
+    "references": [
+        "MapLibre.Unity",
+        "Unity.TextMeshPro",
+        "Newtonsoft.Json"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

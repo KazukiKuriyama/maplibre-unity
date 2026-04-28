@@ -1,0 +1,18 @@
+{
+    "name": "MapLibre.Unity.Samples",
+    "rootNamespace": "MapLibre.Unity.Samples",
+    "references": [
+        "MapLibre.Unity",
+        "Newtonsoft.Json",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

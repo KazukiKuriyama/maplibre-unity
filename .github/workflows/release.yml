@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  checks: write
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify package.json version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(jq -r .version Packages/com.kazukikuriyama.maplibre-unity/package.json)
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match Packages/com.kazukikuriyama.maplibre-unity/package.json version ${PKG_VERSION}"
+            exit 1
+          fi
+          echo "Version match: ${TAG_VERSION}"
+
+      - name: Extract changelog section
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BODY=$(awk -v v="$VERSION" '
+            /^## \[/ {
+              if (capturing) { exit }
+              if (index($0, "[" v "]")) { capturing = 1; next }
+            }
+            capturing { print }
+          ' CHANGELOG.md)
+          if [ -z "$BODY" ]; then
+            BODY="Release ${GITHUB_REF_NAME}. See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details."
+          fi
+          {
+            echo 'body<<RELEASE_NOTES_EOF'
+            echo "$BODY"
+            echo ''
+            echo '## Install via Unity Package Manager'
+            echo ''
+            echo 'In Unity Editor: **Window → Package Manager → + → Install package from git URL...**'
+            echo ''
+            echo '```'
+            echo "https://github.com/${{ github.repository }}.git?path=Packages/com.kazukikuriyama.maplibre-unity#${GITHUB_REF_NAME}"
+            echo '```'
+            echo 'RELEASE_NOTES_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build UPM tarball
+        run: |
+          STAGING=$(mktemp -d)
+          cp -R Packages/com.kazukikuriyama.maplibre-unity/. "$STAGING/"
+          # Tests are dev-only; exclude from UPM tarball (Tests~ would also work but
+          # Unity warns about empty package; simplest is to drop them).
+          rm -rf "$STAGING/Tests" "$STAGING/Tests.meta"
+          # Bundle root-level LICENSE / CHANGELOG / THIRD_PARTY_NOTICES into the package
+          # so Package Manager UI can display them without external network calls.
+          cp LICENSE "$STAGING/LICENSE.md"
+          cp CHANGELOG.md "$STAGING/CHANGELOG.md"
+          cp THIRD_PARTY_NOTICES.md "$STAGING/THIRD_PARTY_NOTICES.md"
+          PKG_NAME=$(jq -r .name Packages/com.kazukikuriyama.maplibre-unity/package.json)
+          TARBALL="${PKG_NAME}-${GITHUB_REF_NAME#v}.tgz"
+          tar -czf "$TARBALL" -C "$STAGING" .
+          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.body }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: ${{ env.TARBALL }}

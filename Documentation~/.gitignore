@@ -1,0 +1,9 @@
+# DocFX build output and metadata cache. The metadata extractor populates
+# api/*.yml and api/.manifest from the C# source tree, plus a per-build
+# obj/ cache. The seed api/index.md is kept under version control as the
+# landing page when the API has not yet been generated.
+_site/
+obj/
+api/*.yml
+api/*.json
+api/.manifest

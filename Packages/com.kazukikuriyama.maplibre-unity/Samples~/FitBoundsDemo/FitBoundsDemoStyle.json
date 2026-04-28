@@ -1,0 +1,30 @@
+{
+    "version": 8,
+    "name": "FitBounds Demo Base",
+    "center": [139.7670, 35.6814],
+    "zoom": 5,
+    "sources": {
+        "basemap": {
+            "type": "raster",
+            "tiles": [
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "attribution": "\u00a9 OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#e8e8e8"
+            }
+        },
+        {
+            "id": "raster-base",
+            "type": "raster",
+            "source": "basemap"
+        }
+    ]
+}

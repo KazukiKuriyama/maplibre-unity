@@ -1,0 +1,90 @@
+{
+    "version": 8,
+    "name": "Sprite Icon Test",
+    "sprite": "https://demotiles.maplibre.org/styles/osm-bright-gl-style/sprite",
+    "center": [10, 30],
+    "zoom": 5,
+    "sources": {
+        "demotiles": {
+            "type": "vector",
+            "url": "https://demotiles.maplibre.org/tiles/tiles.json"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#e8e0d8"
+            }
+        },
+        {
+            "id": "countries-fill",
+            "type": "fill",
+            "source": "demotiles",
+            "source-layer": "countries",
+            "paint": {
+                "fill-color": "#f2efe9",
+                "fill-outline-color": "#cec6b9"
+            }
+        },
+        {
+            "id": "geolines",
+            "type": "line",
+            "source": "demotiles",
+            "source-layer": "geolines",
+            "paint": {
+                "line-color": "#c8c0b4",
+                "line-width": 1,
+                "line-opacity": 0.5
+            }
+        },
+        {
+            "id": "country-icons",
+            "type": "symbol",
+            "source": "demotiles",
+            "source-layer": "centroids",
+            "maxzoom": 6,
+            "layout": {
+                "icon-image": [
+                    "match", ["get", "CONTINENT"],
+                    "Asia", "star_11",
+                    "Europe", "castle_11",
+                    "Africa", "mountain_11",
+                    "North America", "monument_11",
+                    "South America", "park_11",
+                    "Oceania", "zoo_11",
+                    "Antarctica", "triangle_11",
+                    "circle_11"
+                ],
+                "icon-size": {
+                    "stops": [[0, 0.8], [3, 1.2], [6, 1.8]]
+                },
+                "text-field": "{NAME}",
+                "text-size": 80
+            },
+            "paint": {
+                "text-color": "#333333",
+                "text-halo-color": "rgba(255, 255, 255, 0.9)",
+                "text-halo-width": 1.5,
+                "icon-opacity": 1.0
+            }
+        },
+        {
+            "id": "icons-only-layer",
+            "type": "symbol",
+            "source": "demotiles",
+            "source-layer": "centroids",
+            "minzoom": 3,
+            "maxzoom": 6,
+            "filter": ["in", "CONTINENT", "Europe", "Asia"],
+            "layout": {
+                "icon-image": "airport_11",
+                "icon-size": 1.0
+            },
+            "paint": {
+                "icon-opacity": 0.6
+            }
+        }
+    ]
+}

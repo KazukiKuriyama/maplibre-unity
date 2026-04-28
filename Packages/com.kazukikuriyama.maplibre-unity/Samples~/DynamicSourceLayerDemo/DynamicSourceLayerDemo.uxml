@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="DynamicSourceLayerDemo.uss" />
+    <ui:VisualElement class="demo-panel">
+        <ui:Label text="Dynamic Source / Layer API" class="demo-title" />
+
+        <ui:Label text="Source" class="demo-section-label" />
+        <ui:Button name="btn-add-parks" text="addSource(&quot;parks&quot;)" class="demo-button" />
+        <ui:Button name="btn-add-stations" text="addSource(&quot;stations&quot;)" class="demo-button" />
+        <ui:Button name="btn-get-source" text="getSource(&quot;parks&quot;)" class="demo-button demo-button--info" />
+        <ui:Button name="btn-remove-parks-source" text="removeSource(&quot;parks&quot;)" class="demo-button demo-button--danger" />
+
+        <ui:Label text="Layer" class="demo-section-label" />
+        <ui:Button name="btn-add-parks-layers" text="addLayer (parks-fill + outline)" class="demo-button" />
+        <ui:Button name="btn-add-station-layers" text="addLayer (stations-circle + label)" class="demo-button" />
+        <ui:Button name="btn-get-layer" text="getLayer(&quot;parks-fill&quot;)" class="demo-button demo-button--info" />
+        <ui:Button name="btn-remove-parks-outline" text="removeLayer(&quot;parks-outline&quot;)" class="demo-button demo-button--danger" />
+        <ui:Button name="btn-remove-parks-fill" text="removeLayer(&quot;parks-fill&quot;)" class="demo-button demo-button--danger" />
+        <ui:Button name="btn-remove-station-layers" text="removeLayer (stations)" class="demo-button demo-button--danger" />
+
+        <ui:Label name="log-label" class="demo-log" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,40 @@
+{
+  "name": "com.kazukikuriyama.maplibre-unity",
+  "version": "0.1.0",
+  "displayName": "MapLibre Unity",
+  "description": "MapLibre GL JS port for Unity, written in pure C# with no native plugins. Renders raster and vector tiles with full MapLibre Style Spec support (paint/layout properties, expressions, zoom functions, filters, symbols, camera animations).",
+  "unity": "6000.3",
+  "author": {
+    "name": "Kazuki Kuriyama",
+    "url": "https://github.com/KazukiKuriyama"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.inputsystem": "1.18.0",
+    "com.unity.ugui": "2.0.0"
+  },
+  "keywords": [
+    "map",
+    "maplibre",
+    "vector-tile",
+    "raster-tile",
+    "geo",
+    "gis",
+    "openstreetmap"
+  ],
+  "documentationUrl": "https://github.com/KazukiKuriyama/maplibre-unity#readme",
+  "changelogUrl": "https://github.com/KazukiKuriyama/maplibre-unity/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/KazukiKuriyama/maplibre-unity/blob/main/LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KazukiKuriyama/maplibre-unity.git"
+  },
+  "samples": [
+    {
+      "displayName": "All Samples",
+      "description": "Every demo scene grouped under HomeScene — basic raster, vector with labels, terrain, fill-extrusion, glyph URL SDF text, custom layers/sources, camera animations, feature-state, marker/popup, and more (38 scenes total). Add the imported scenes to Build Settings to run them.",
+      "path": "Samples~"
+    }
+  ]
+}

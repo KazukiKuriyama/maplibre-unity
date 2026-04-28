@@ -1,0 +1,10 @@
+apiRules:
+- exclude:
+    uidRegex: ^MapLibre\.Unity\..*Tests.*
+    type: Namespace
+- exclude:
+    uidRegex: ^MapLibre\.Unity\.Internal.*
+    type: Namespace
+- include:
+    uidRegex: ^MapLibre\.Unity.*
+    type: Namespace

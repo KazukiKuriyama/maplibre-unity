@@ -1,0 +1,66 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "..",
+          "files": [
+            "Packages/com.kazukikuriyama.maplibre-unity/Runtime/**/*.cs",
+            "Packages/com.kazukikuriyama.maplibre-unity/Editor/**/*.cs"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ]
+        }
+      ],
+      "dest": "api",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false,
+      "filter": "filterConfig.yml"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "index.md",
+          "toc.yml",
+          "GettingStarted.md",
+          "StyleSpec.md",
+          "Expressions.md",
+          "CameraAnimation.md"
+        ]
+      },
+      {
+        "files": [
+          "api/**.yml",
+          "api/**.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "globalMetadata": {
+      "_appName": "MapLibre for Unity",
+      "_appTitle": "MapLibre for Unity",
+      "_appFooter": "MIT License — Copyright (c) 2026 Kazuki Kuriyama",
+      "_enableSearch": true,
+      "_disableContribution": false
+    },
+    "template": [
+      "default",
+      "modern"
+    ],
+    "dest": "_site",
+    "xref": [],
+    "xrefService": [
+      "https://xref.docs.microsoft.com/query?uid={uid}"
+    ]
+  }
+}
