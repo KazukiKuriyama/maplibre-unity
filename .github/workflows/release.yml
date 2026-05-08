@@ -1,50 +1,44 @@
 name: Release
 
+# Tag push triggers regression tests and deploys the latest WebGL sample
+# build to GitHub Pages. workflow_dispatch lets a maintainer redeploy the
+# current state of any branch on demand (e.g. to preview a fix before
+# tagging). There is no GitHub Release object created and no Player binary
+# / UPM tarball uploaded -- the package is consumed via UPM git URL
+# (`?path=...#vX.Y.Z`), and the live demo lives on Pages.
 on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   checks: write
-  # Required so the reusable test.yml (which posts PR check annotations) can
-  # be invoked via workflow_call — the called workflow's job-level permissions
-  # must be a subset of the caller's. Without this the run dies at startup
-  # with "nested job 'test' is requesting 'pull-requests: write', but is only
-  # allowed 'pull-requests: none'".
   pull-requests: write
+  pages: write
+  id-token: write
+
+# Pages deployments are inherently serial -- do not interrupt an in-flight
+# deploy with a newer tag, queue it instead so the latest tag wins.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   test:
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
-  build:
+  build-webgl:
     needs: test
-    name: Build ${{ matrix.targetPlatform }}
+    name: Build WebGL
     runs-on: ubuntu-latest
     env:
       # game-ci/unity-builder@v4.6.0 still ships with Node 20; opt the runner
       # into Node 24 so the action survives the 2026-06-02 default switch.
-      # Mirrors test.yml — drop once unity-builder ships v5+.
+      # Mirrors test.yml -- drop once unity-builder ships v5+.
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-    strategy:
-      fail-fast: false
-      matrix:
-        # macOS (StandaloneOSX) was dropped from CI builds: cross-compiled .app
-        # bundles need an unsigned-quarantine workaround on first launch and
-        # the extra build doubles Unity license seat usage during release.
-        # macOS users can still install the package via UPM and build locally.
-        include:
-          - targetPlatform: StandaloneWindows64
-            artifactName: windows
-            archiveExt: zip
-          - targetPlatform: WebGL
-            artifactName: webgl
-            # WebGL output is a directory (index.html + Build/ + StreamingAssets/)
-            # — zip preserves it without symlink concerns.
-            archiveExt: zip
     steps:
       - name: Free disk space
         run: |
@@ -64,81 +58,13 @@ jobs:
         with:
           lfs: true
 
-      - name: Cache Library
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: Library
-          key: Library-Build-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-Build-${{ matrix.targetPlatform }}-
-            Library-
-
-      - name: Inject release version into PlayerSettings.bundleVersion
-        # Repository keeps a placeholder bundleVersion (0.0.0-dev) so dev/Editor
-        # builds don't pretend to be a real release. On tag push we overwrite it
-        # with the tag version so the Player binary's Application.version matches
-        # the GitHub Release. Cache key above is computed before this step runs,
-        # so the placeholder hash keeps cache hits working across releases.
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          sed -i.bak "s/^  bundleVersion: .*/  bundleVersion: ${VERSION}/" ProjectSettings/ProjectSettings.asset
-          rm ProjectSettings/ProjectSettings.asset.bak
-          grep '^  bundleVersion:' ProjectSettings/ProjectSettings.asset
-
-      - name: Build ${{ matrix.targetPlatform }}
-        # TODO: pin to a SHA once the desired unity-builder version is verified,
-        # to match the SHA-pinning convention used by test.yml.
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          unityVersion: 6000.3.10f1
-          targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: maplibre-unity
-          versioning: None
-
-      - name: Package archive
-        id: package
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          ARCHIVE_BASE="maplibre-unity-${{ matrix.artifactName }}-${VERSION}"
-          BUILD_DIR="build/${{ matrix.targetPlatform }}"
-          if [ ! -d "$BUILD_DIR" ]; then
-            echo "::error::Expected build output directory $BUILD_DIR not found"
-            exit 1
-          fi
-
-          if [ "${{ matrix.archiveExt }}" = "zip" ]; then
-            ARCHIVE_PATH="${ARCHIVE_BASE}.zip"
-            (cd "$BUILD_DIR" && zip -r "../../${ARCHIVE_PATH}" .)
-          else
-            ARCHIVE_PATH="${ARCHIVE_BASE}.tar.gz"
-            tar -czf "$ARCHIVE_PATH" -C "$BUILD_DIR" .
-          fi
-
-          ls -lh "$ARCHIVE_PATH"
-          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
-
-      - name: Upload archive artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: build-${{ matrix.artifactName }}
-          path: ${{ steps.package.outputs.archive_path }}
-          if-no-files-found: error
-          retention-days: 7
-
-  release:
-    needs: [test, build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
       - name: Verify package.json version matches tag
+        # Guardrail: tag and package.json must agree before we deploy. Stops
+        # accidental drift where someone tags v0.4.0 but forgot to bump the
+        # manifest, which would mislead UPM consumers pinning to that tag.
+        # Skipped on workflow_dispatch since there is no tag to verify
+        # against (the dispatch deploys whatever the selected ref points at).
+        if: github.event_name == 'push'
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           PKG_VERSION=$(jq -r .version Packages/com.kazukikuriyama.maplibre-unity/package.json)
@@ -148,79 +74,65 @@ jobs:
           fi
           echo "Version match: ${TAG_VERSION}"
 
-      - name: Extract changelog section
-        id: changelog
+      - name: Cache Library
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: Library
+          key: Library-Build-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-Build-WebGL-
+            Library-
+
+      - name: Inject release version into PlayerSettings.bundleVersion
+        # Repository keeps a placeholder bundleVersion (0.0.0-dev) so dev/Editor
+        # builds don't pretend to be a real release. On tag push we overwrite
+        # it with the tag version so the Player binary's Application.version
+        # matches the deployed tag. On workflow_dispatch (ad-hoc deploy from
+        # a branch) we use a dev marker derived from the commit SHA so the
+        # deployed app is clearly identifiable as not-a-real-release. Cache
+        # key above is computed before this step runs, so the placeholder
+        # hash keeps cache hits working across releases.
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          BODY=$(awk -v v="$VERSION" '
-            /^## \[/ {
-              if (capturing) { exit }
-              if (index($0, "[" v "]")) { capturing = 1; next }
-            }
-            capturing { print }
-          ' CHANGELOG.md)
-          if [ -z "$BODY" ]; then
-            BODY="Release ${GITHUB_REF_NAME}. See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details."
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="dev-${GITHUB_SHA:0:7}"
           fi
-          {
-            echo 'body<<RELEASE_NOTES_EOF'
-            echo "$BODY"
-            echo ''
-            echo '## Install via Unity Package Manager'
-            echo ''
-            echo 'In Unity Editor: **Window → Package Manager → + → Install package from git URL...**'
-            echo ''
-            echo '```'
-            echo "https://github.com/${{ github.repository }}.git?path=Packages/com.kazukikuriyama.maplibre-unity#${GITHUB_REF_NAME}"
-            echo '```'
-            echo ''
-            echo '## Sample player builds'
-            echo ''
-            echo 'Pre-built sample players are attached below. They boot into `HomeScene`, which links every demo scene listed in `EditorBuildSettings`. macOS / Linux users can install the package via UPM and run the samples directly in the Unity Editor.'
-            echo ''
-            echo '- **Windows (x64)** — `maplibre-unity-windows-'"${VERSION}"'.zip`'
-            echo '- **WebGL** — `maplibre-unity-webgl-'"${VERSION}"'.zip` (experimental). Unzip and serve over HTTP — the bundled `index.html` is the entry point. Static hosting only; the build does not require COOP/COEP headers because WebAssembly threads are off.'
-            echo 'RELEASE_NOTES_EOF'
-          } >> "$GITHUB_OUTPUT"
+          sed -i.bak "s/^  bundleVersion: .*/  bundleVersion: ${VERSION}/" ProjectSettings/ProjectSettings.asset
+          rm ProjectSettings/ProjectSettings.asset.bak
+          grep '^  bundleVersion:' ProjectSettings/ProjectSettings.asset
 
-      - name: Build UPM tarball
-        run: |
-          STAGING=$(mktemp -d)
-          cp -R Packages/com.kazukikuriyama.maplibre-unity/. "$STAGING/"
-          # Tests are dev-only; exclude from UPM tarball (Tests~ would also work but
-          # Unity warns about empty package; simplest is to drop them).
-          rm -rf "$STAGING/Tests" "$STAGING/Tests.meta"
-          # Bundle root-level LICENSE / CHANGELOG into the package so Package
-          # Manager UI can display them without external network calls.
-          # THIRD_PARTY_NOTICES.md already lives inside the package directory
-          # so the cp -R above brings it in — no extra copy needed.
-          cp LICENSE "$STAGING/LICENSE.md"
-          cp CHANGELOG.md "$STAGING/CHANGELOG.md"
-          PKG_NAME=$(jq -r .name Packages/com.kazukikuriyama.maplibre-unity/package.json)
-          TARBALL="${PKG_NAME}-${GITHUB_REF_NAME#v}.tgz"
-          tar -czf "$TARBALL" -C "$STAGING" .
-          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
-
-      - name: Download build artifacts
-        # TODO: pin to a SHA. The matching upload step uses upload-artifact v7;
-        # download-artifact v6+ is required for v7-uploaded artifacts.
-        uses: actions/download-artifact@v6
+      - name: Build WebGL
+        # TODO: pin to a SHA once the desired unity-builder version is verified,
+        # to match the SHA-pinning convention used by test.yml.
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          path: dist
-          pattern: build-*
-          merge-multiple: true
+          unityVersion: 6000.3.10f1
+          targetPlatform: WebGL
+          buildName: maplibre-unity
+          versioning: None
 
-      - name: List release assets
-        run: ls -lh "$TARBALL" dist/
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+      - name: Upload Pages artifact
+        # actions/upload-pages-artifact bundles the directory into a tar that
+        # actions/deploy-pages knows how to consume. Use the directory Unity
+        # writes to (build/WebGL) directly -- it already contains index.html
+        # at the root.
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v4.0.0
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body: ${{ steps.changelog.outputs.body }}
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          files: |
-            ${{ env.TARBALL }}
-            dist/*
+          path: build/WebGL
+
+  deploy-pages:
+    needs: build-webgl
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
