@@ -8,6 +8,36 @@ once 1.0 is cut. The history here is curated from commit messages — see
 
 ## [Unreleased]
 
+### Added
+- **WebGL Player support (experimental).** Raster basemaps, vector tile
+  layers (Fill / Line / Circle / FillExtrusion / Heatmap), and Symbol /
+  SDF text all render in WebGL builds verified on Chrome / Firefox /
+  Safari. Notes:
+  - Disk caches (`TileDiskCache`, `GlyphSource`) are no-ops on WebGL —
+    `Application.persistentDataPath` is IDBFS-backed and synchronous
+    `File.*` calls block on IndexedDB sync. The browser's HTTP cache
+    covers the same ground.
+  - `Task.Run` callsites flow through a new internal `BackgroundTask.Run`
+    helper that forwards to the real `Task.Run` on threaded platforms and
+    runs the body inline on WebGL Player (returning a pre-completed
+    task so the existing polling pattern exits immediately).
+  - `VectorTileParser.ParseLazy(byte[])` exposes the parser as
+    `IEnumerable<VectorTileLayer>` for incremental consumption.
+    `VectorTileSource` drives this through a coroutine with a 4 ms
+    per-frame budget on WebGL Player so heavy tiles (~1-3 sec parse on
+    planet z9) spread across multiple frames instead of freezing the
+    main thread. Existing eager `Parse(byte[])` is unchanged on threaded
+    platforms.
+  - WebGL has no OS font enumeration: a new `SystemFontFallback` helper
+    swaps `Font.CreateDynamicFontFromOSFont` for the bundled
+    `LegacyRuntime.ttf` on WebGL Player. CJK / emoji rendering still
+    requires assigning a TMP_FontAsset under `MapLibreMap > Text >
+    Symbol Font`. README's "Supported platforms" was updated to mark
+    WebGL as experimental rather than unsupported.
+  - Heavy mesh-building inside renderers still runs synchronously inline
+    on WebGL, so large tiles can introduce a frame stall on initial load.
+    Pan / zoom between tile arrivals remains smooth.
+
 ## [0.2.1] - 2026-05-08
 
 ### Changed

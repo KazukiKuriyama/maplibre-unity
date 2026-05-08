@@ -244,6 +244,30 @@ standards without needing to be asked:
 - Prefer composition over modification — add components, don't mutate
   existing ones.
 
+### Platform-specific code
+
+- **WebGL Player builds run single-threaded** (no SharedArrayBuffer in
+  the default config). When introducing new code that needs threading
+  or filesystem access, wrap with `#if UNITY_WEBGL && !UNITY_EDITOR` and
+  provide a fallback. Patterns already in use:
+  - Background work: route `Task.Run` through `BackgroundTask.Run`
+    (Runtime/BackgroundTask.cs). The wrapper inlines work on WebGL
+    Player and forwards to `Task.Run` elsewhere.
+  - Heavy parsers: expose an incremental `ParseLazy` (returns
+    `IEnumerable`) alongside the eager `Parse` so the WebGL coroutine
+    path can yield to the main loop with a per-frame budget. See
+    `VectorTileParser` + `VectorTileSource.ParseTileBytesIncremental`.
+  - Disk caching: skip on WebGL (`TileDiskCache.Enabled = false`,
+    `GlyphSource._diskCacheDir = null`). The browser HTTP cache is the
+    fallback.
+  - OS font enumeration: WebGL has no `Font.GetPathsToOSFonts`; route
+    through `SystemFontFallback.Resolve`, which returns
+    `Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")` on WebGL.
+- Test-runner tests (Tests/EditMode) execute on the Editor platform, so
+  `#if UNITY_WEBGL && !UNITY_EDITOR` branches are NOT exercised by CI.
+  Verify those manually by switching the Build Profile to WebGL and
+  running a sample scene in the browser.
+
 ### Tests
 
 - New runtime behaviour with deterministic input/output should land

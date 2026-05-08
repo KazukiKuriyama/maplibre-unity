@@ -113,8 +113,8 @@ Comparison against MapLibre Native (C++) and MapLibre GL JS (Web).
 
 | Item | MapLibre Native | MapLibre GL JS | MapLibre Unity |
 |---|:---:|:---:|:---:|
-| GPU backend | OpenGL / Metal / Vulkan | WebGL 1/2 | Unity URP |
-| Vector tile processing | worker threads | Web Worker | `Task.Run` (background thread) |
+| GPU backend | OpenGL / Metal / Vulkan | WebGL 1/2 | Unity URP (incl. WebGL 2) |
+| Vector tile processing | worker threads | Web Worker | `Task.Run` (background thread); coroutine + `ParseLazy` on WebGL Player |
 | Tile cache | ✅ | ✅ | ✅ (LRU + disk cache) |
 | Native plugins | — | — | none (pure C#) |
 | feature-state thread safety | ✅ | ✅ | ✅ (`ConcurrentDictionary`) |
@@ -138,12 +138,31 @@ principle, so the library is *expected* to work there. No mobile
 build has been smoke-tested by the maintainer; reports (and PRs) from
 people trying it on device are very welcome.
 
-**Not supported:** WebGL. Vector tile parsing and mesh building rely
-on `Task.Run` with `lock`-protected queues, and the tile / glyph
-caches use synchronous `System.IO.File` APIs — neither works under
-the default WebGL single-threaded runtime. Support may be added later
-behind `#if UNITY_WEBGL` guards; until then WebGL builds will compile
-but crash at runtime.
+**Experimental:** WebGL. Raster basemaps, vector tiles (Fill / Line /
+Circle / FillExtrusion), Heatmap, and Symbol / SDF text all render
+on WebGL Player builds verified by the maintainer. Threading and
+filesystem behaviour is adapted under `#if UNITY_WEBGL` guards:
+
+- The disk caches (`TileDiskCache`, `GlyphSource`) are disabled —
+  `Application.persistentDataPath` is IDBFS-backed on WebGL and
+  synchronous `File.*` calls block on IndexedDB sync. The browser's
+  HTTP cache covers the same ground for free.
+- `Task.Run` callsites go through `BackgroundTask.Run`, which on
+  WebGL Player invokes the body inline (no real worker thread) and
+  returns a pre-completed task so the existing polling pattern
+  exits immediately.
+- `VectorTileSource` runs an incremental ParseLazy-based coroutine
+  on WebGL with a 4 ms per-frame budget so heavy tiles spread
+  across multiple frames instead of stalling the main loop.
+- WebGL Player has no OS font enumeration, so UI Toolkit and Symbol
+  layers fall back to Unity's bundled `LegacyRuntime.ttf`. CJK /
+  emoji fonts must be wired through `MapLibreMap > Text > Symbol
+  Font` (TMP_FontAsset) for non-ASCII labels.
+
+Mesh-building still runs synchronously inline, so large tiles can
+introduce a frame stall during initial load; pan / zoom remains
+smooth between tile arrivals. WebGPU build target works the same
+way at compile time but is currently untested.
 
 ## Installation
 
