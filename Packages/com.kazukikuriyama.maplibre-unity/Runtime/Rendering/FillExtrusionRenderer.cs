@@ -272,7 +272,7 @@ namespace MapLibre.Unity.Rendering
                 var capturedRect = patternRect;
                 var capturedPixel = patternPixel;
 
-                Task.Run(() =>
+                BackgroundTask.Run(() =>
                 {
                     var meshData = VectorTileMeshBuilder.BuildFillExtrusionMeshData(
                         capturedGroup, capturedExtent,

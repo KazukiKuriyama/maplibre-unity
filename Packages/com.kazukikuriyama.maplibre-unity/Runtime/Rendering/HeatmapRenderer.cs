@@ -145,7 +145,7 @@ namespace MapLibre.Unity.Rendering
             var capturedSourceLayer = layerDef.SourceLayer;
             var capturedStore = _featureStateStore;
 
-            Task.Run(() =>
+            BackgroundTask.Run(() =>
             {
                 var meshData = VectorTileMeshBuilder.BuildHeatmapMeshData(
                     capturedFeatures, capturedExtent, weightExpr, capturedZoom,

@@ -329,7 +329,7 @@ namespace MapLibre.Unity.Rendering
                     var capturedGroup = groupFeatures;
                     var capturedKey = groupKey;
 
-                    Task.Run(() =>
+                    BackgroundTask.Run(() =>
                     {
                         var meshData = VectorTileMeshBuilder.BuildFillMeshData(
                             capturedGroup, capturedExtent, colorExpr, opacityExpr, capturedZoom,
@@ -361,7 +361,7 @@ namespace MapLibre.Unity.Rendering
                 {
                     var capturedGroup = groupFeatures;
 
-                    Task.Run(() =>
+                    BackgroundTask.Run(() =>
                     {
                         var meshData = VectorTileMeshBuilder.BuildFillMeshData(
                             capturedGroup, capturedExtent, colorExpr, opacityExpr, capturedZoom,
@@ -494,7 +494,7 @@ namespace MapLibre.Unity.Rendering
                     var capturedGroup = groupFeatures;
                     var capturedKey = groupKey;
 
-                    Task.Run(() =>
+                    BackgroundTask.Run(() =>
                     {
                         var meshData = VectorTileMeshBuilder.BuildLineMeshData(
                             capturedGroup, capturedExtent,
@@ -530,7 +530,7 @@ namespace MapLibre.Unity.Rendering
                 {
                     var capturedGroup = groupFeatures;
 
-                    Task.Run(() =>
+                    BackgroundTask.Run(() =>
                     {
                         var meshData = VectorTileMeshBuilder.BuildLineMeshData(
                             capturedGroup, capturedExtent,
@@ -641,7 +641,7 @@ namespace MapLibre.Unity.Rendering
                 ? opacityExpr.EvaluateFloat(MakeContext(zoom, layerDef.Source, layerDef.SourceLayer), 1f)
                 : 1f;
 
-            Task.Run(() =>
+            BackgroundTask.Run(() =>
             {
                 // colorExpr is irrelevant for gradient — the shader samples the
                 // ramp instead. We pass null so per-vertex colors stay at the

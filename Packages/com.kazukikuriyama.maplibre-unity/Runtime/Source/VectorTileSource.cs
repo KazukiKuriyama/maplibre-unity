@@ -239,7 +239,7 @@ namespace MapLibre.Unity.Source
             _activeParseTasks[tileId] = cts;
             var token = cts.Token;
 
-            Task<VectorTileData> parseTask = Task.Run(() =>
+            Task<VectorTileData> parseTask = BackgroundTask.Run(() =>
             {
                 byte[] data = bytes;
                 if (data.Length >= 2 && data[0] == 0x1f && data[1] == 0x8b)
@@ -408,7 +408,7 @@ namespace MapLibre.Unity.Source
                 _activeParseTasks[tileId] = cts;
                 var token = cts.Token;
 
-                Task<VectorTileData> parseTask = Task.Run(() =>
+                Task<VectorTileData> parseTask = BackgroundTask.Run(() =>
                 {
                     byte[] data = rawData;
                     if (data.Length >= 2 && data[0] == 0x1f && data[1] == 0x8b)

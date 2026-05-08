@@ -167,7 +167,7 @@ namespace MapLibre.Unity.Rendering
             var capturedSourceLayer = layerDef.SourceLayer;
             var capturedStore = _featureStateStore;
 
-            Task.Run(() =>
+            BackgroundTask.Run(() =>
             {
                 var meshData = VectorTileMeshBuilder.BuildCircleMeshData(
                     capturedFeatures, capturedExtent,

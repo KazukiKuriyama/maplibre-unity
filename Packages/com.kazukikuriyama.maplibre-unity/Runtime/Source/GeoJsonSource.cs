@@ -322,7 +322,7 @@ namespace MapLibre.Unity.Source
             Action<CanonicalTileID, VectorTileData> onComplete,
             Action<CanonicalTileID, string> onError)
         {
-            Task<VectorTileData> task = Task.Run(() =>
+            Task<VectorTileData> task = BackgroundTask.Run(() =>
             {
                 token.ThrowIfCancellationRequested();
                 return GeoJsonToVectorTile.GenerateTile(features, z, x, y, layerName);
