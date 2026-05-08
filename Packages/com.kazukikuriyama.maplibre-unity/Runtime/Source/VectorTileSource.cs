@@ -52,6 +52,17 @@ namespace MapLibre.Unity.Source
         /// </summary>
         private const float ParseTimeoutSeconds = 90f;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        /// <summary>
+        /// Per-frame parse budget on WebGL Player, where the parser runs on
+        /// the main thread (no real worker available). 4 ms keeps us well
+        /// under a 16.6 ms / 60 fps frame even when other game work runs on
+        /// the same frame; the cost is more yields and a longer wall-clock
+        /// for the full parse (since each yield drops out to the scheduler).
+        /// </summary>
+        private const int WebGLParseBudgetMs = 4;
+#endif
+
         private struct TileRequest
         {
             public CanonicalTileID TileId;
@@ -239,6 +250,37 @@ namespace MapLibre.Unity.Source
             _activeParseTasks[tileId] = cts;
             var token = cts.Token;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Single-thread WebGL: drive ParseLazy with a frame budget so the
+            // tile's worth of layers is spread across multiple frames.
+            VectorTileData parsed = null;
+            string failMessage = null;
+            bool timedOut = false;
+            yield return ParseTileBytesIncremental(bytes, token,
+                onParsed: t => parsed = t,
+                onTimedOut: msg => { failMessage = msg; timedOut = true; },
+                onFaulted: msg => failMessage = msg);
+
+            _activeParseTasks.Remove(tileId);
+            cts.Dispose();
+            _activeRequests--;
+            _pendingRequests.Remove(tileId);
+
+            if (parsed != null)
+            {
+                _cache.Put(tileId, parsed);
+                onComplete?.Invoke(tileId, parsed);
+            }
+            else if (timedOut)
+            {
+                onError?.Invoke(tileId, $"Custom tile parse timeout: {failMessage}");
+            }
+            else
+            {
+                onError?.Invoke(tileId,
+                    $"Custom tile parse: {failMessage ?? "Unknown parse error"}");
+            }
+#else
             Task<VectorTileData> parseTask = BackgroundTask.Run(() =>
             {
                 byte[] data = bytes;
@@ -287,6 +329,7 @@ namespace MapLibre.Unity.Source
                                   ?? "Unknown parse error";
                 onError?.Invoke(tileId, $"Custom tile parse: {errorMsg}");
             }
+#endif
 
             ProcessQueue();
         }
@@ -403,11 +446,42 @@ namespace MapLibre.Unity.Source
             if (rawData != null)
             {
 
-                // gzip decompress + PBF parse on a background thread (cancellable)
+                // gzip decompress + PBF parse. On threaded platforms this runs
+                // on a worker via BackgroundTask.Run. On WebGL Player the same
+                // wrapper would inline the work and freeze the main thread for
+                // the duration of a heavy tile, so we route through the
+                // incremental ParseLazy-driven coroutine instead.
                 var cts = new CancellationTokenSource();
                 _activeParseTasks[tileId] = cts;
                 var token = cts.Token;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+                VectorTileData parsed = null;
+                string failMessage = null;
+                bool timedOut = false;
+                yield return ParseTileBytesIncremental(rawData, token,
+                    onParsed: t => parsed = t,
+                    onTimedOut: msg => { failMessage = msg; timedOut = true; },
+                    onFaulted: msg => failMessage = msg);
+
+                _activeParseTasks.Remove(tileId);
+                cts.Dispose();
+
+                if (parsed != null)
+                {
+                    _cache.Put(tileId, parsed);
+                    onComplete?.Invoke(tileId, parsed);
+                }
+                else if (timedOut)
+                {
+                    onError?.Invoke(tileId, $"Parse timeout for {url}: {failMessage}");
+                }
+                else
+                {
+                    onError?.Invoke(tileId,
+                        $"Parse error for {url}: {failMessage ?? "Unknown parse error"}");
+                }
+#else
                 Task<VectorTileData> parseTask = BackgroundTask.Run(() =>
                 {
                     byte[] data = rawData;
@@ -461,6 +535,7 @@ namespace MapLibre.Unity.Source
                 {
                     onError?.Invoke(tileId, $"Parse returned null for {url}");
                 }
+#endif
             }
             else
             {
@@ -512,6 +587,79 @@ namespace MapLibre.Unity.Source
             gzip.CopyTo(output);
             return output.ToArray();
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        /// <summary>
+        /// WebGL-only incremental parser. Decompresses gzip and feeds the raw
+        /// bytes through <see cref="VectorTileParser.ParseLazy"/>, accumulating
+        /// layers into a <see cref="VectorTileData"/>. Yields back to the
+        /// coroutine scheduler every <see cref="WebGLParseBudgetMs"/> ms so a
+        /// heavy planet tile (~1-3 sec total parse on a single thread) shows
+        /// up as a string of small frame budget overruns rather than a single
+        /// multi-second freeze. The non-WebGL path keeps using
+        /// <c>BackgroundTask.Run</c> + eager Parse, since a worker thread can
+        /// finish in one go without affecting the main loop.
+        /// </summary>
+        private IEnumerator ParseTileBytesIncremental(byte[] bytes, CancellationToken token,
+            Action<VectorTileData> onParsed,
+            Action<string> onTimedOut,
+            Action<string> onFaulted)
+        {
+            byte[] data = bytes;
+            // gzip step is fast (~1-5 ms even for planet z9); skip the yield.
+            string preError = null;
+            try
+            {
+                if (data.Length >= 2 && data[0] == 0x1f && data[1] == 0x8b)
+                    data = DecompressGzip(data);
+            }
+            catch (Exception e) { preError = $"Gzip decompress failed: {e.Message}"; }
+            if (preError != null) { onFaulted?.Invoke(preError); yield break; }
+
+            IEnumerator<VectorTileLayer> layerStream = null;
+            string initError = null;
+            try { layerStream = VectorTileParser.ParseLazy(data).GetEnumerator(); }
+            catch (Exception e) { initError = e.Message; }
+            if (initError != null) { onFaulted?.Invoke(initError); yield break; }
+
+            var tile = new VectorTileData();
+            var totalWatch = System.Diagnostics.Stopwatch.StartNew();
+            var budgetWatch = System.Diagnostics.Stopwatch.StartNew();
+
+            while (true)
+            {
+                if (token.IsCancellationRequested ||
+                    totalWatch.Elapsed.TotalSeconds > ParseTimeoutSeconds)
+                {
+                    layerStream.Dispose();
+                    onTimedOut?.Invoke($"exceeded {ParseTimeoutSeconds}s");
+                    yield break;
+                }
+
+                bool hasNext;
+                string stepError = null;
+                try { hasNext = layerStream.MoveNext(); }
+                catch (Exception e) { hasNext = false; stepError = e.Message; }
+                if (stepError != null)
+                {
+                    layerStream.Dispose();
+                    onFaulted?.Invoke(stepError);
+                    yield break;
+                }
+                if (!hasNext) break;
+
+                tile._layers.Add(layerStream.Current);
+                if (budgetWatch.ElapsedMilliseconds > WebGLParseBudgetMs)
+                {
+                    yield return null;
+                    budgetWatch.Restart();
+                }
+            }
+
+            layerStream.Dispose();
+            onParsed?.Invoke(tile);
+        }
+#endif
 
         private string BuildTileUrl(CanonicalTileID tileId)
         {
