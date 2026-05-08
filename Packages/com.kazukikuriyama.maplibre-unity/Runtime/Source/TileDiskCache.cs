@@ -29,9 +29,18 @@ namespace MapLibre.Unity.Source
     {
         /// <summary>
         /// Master toggle. When false, all reads return miss and writes are no-ops.
-        /// Defaults to true (enabled).
+        /// Defaults to true on platforms with a writable persistent data path,
+        /// and false on WebGL Player builds — Application.persistentDataPath is
+        /// IDBFS-backed there, so synchronous File.* calls block on IndexedDB
+        /// sync and the cache hit rate isn't worth the freeze. WebGL users
+        /// rely on the browser's HTTP cache instead. Override at runtime if
+        /// you really want IDBFS-backed disk cache (after warming IDBFS).
         /// </summary>
+#if UNITY_WEBGL && !UNITY_EDITOR
+        public static bool Enabled { get; set; } = false;
+#else
         public static bool Enabled { get; set; } = true;
+#endif
 
         /// <summary>
         /// Where cache files live. Defaults to <c>persistentDataPath/MapLibreCache</c>.
@@ -204,6 +213,7 @@ namespace MapLibre.Unity.Source
         /// <summary>Wipe the entire cache directory.</summary>
         public static void Clear()
         {
+            if (!Enabled) return;
             try
             {
                 string dir = ResolveCacheDir();
@@ -222,6 +232,7 @@ namespace MapLibre.Unity.Source
         /// <summary>Approximate total size of cached responses in bytes.</summary>
         public static long GetSize()
         {
+            if (!Enabled) return 0;
             try
             {
                 string dir = ResolveCacheDir();

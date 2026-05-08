@@ -71,6 +71,15 @@ namespace MapLibre.Unity.Source
         private void TryEnableDiskCache()
         {
             if (_diskCacheDir != null) return;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // On WebGL Player builds Application.persistentDataPath is
+            // IDBFS-backed: synchronous File.* calls block on IndexedDB sync
+            // and may also miss bytes that haven't been flushed yet. The
+            // browser's HTTP cache covers the same ground for free, so leave
+            // disk cache disabled here and rely on the network path.
+            _diskCacheDir = null;
+            return;
+#else
             try
             {
                 string root = Application.persistentDataPath;
@@ -86,6 +95,7 @@ namespace MapLibre.Unity.Source
                 Debug.LogWarning($"[GlyphSource] Disk cache disabled: {e.Message}");
                 _diskCacheDir = null;
             }
+#endif
         }
 
         // Cache key: fontstack name URL-escaped (so colons / spaces survive
