@@ -32,15 +32,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # macOS (StandaloneOSX) was dropped from CI builds: cross-compiled .app
+        # bundles need an unsigned-quarantine workaround on first launch and
+        # the extra build doubles Unity license seat usage during release.
+        # macOS users can still install the package via UPM and build locally.
         include:
           - targetPlatform: StandaloneWindows64
             artifactName: windows
             archiveExt: zip
-          - targetPlatform: StandaloneOSX
-            artifactName: macos
-            # macOS .app bundles contain symlinks (Frameworks → Versions/Current).
-            # zip drops them by default, breaking the bundle; tar.gz preserves them.
-            archiveExt: tar.gz
     steps:
       - name: Free disk space
         run: |
@@ -170,12 +169,11 @@ jobs:
             echo "https://github.com/${{ github.repository }}.git?path=Packages/com.kazukikuriyama.maplibre-unity#${GITHUB_REF_NAME}"
             echo '```'
             echo ''
-            echo '## Sample player builds'
+            echo '## Sample player build'
             echo ''
-            echo 'Pre-built sample players are attached below. They boot into `HomeScene`, which links every demo scene listed in `EditorBuildSettings`.'
+            echo 'A pre-built Windows sample player is attached below. It boots into `HomeScene`, which links every demo scene listed in `EditorBuildSettings`. macOS / Linux users can install the package via UPM and run the samples directly in the Unity Editor.'
             echo ''
             echo '- **Windows (x64)** — `maplibre-unity-windows-'"${VERSION}"'.zip`'
-            echo '- **macOS (Universal)** — `maplibre-unity-macos-'"${VERSION}"'.tar.gz`. Cross-compiled on Linux and unsigned, so the first launch needs `xattr -dr com.apple.quarantine maplibre-unity.app` (or right-click → Open) to clear Gatekeeper.'
             echo 'RELEASE_NOTES_EOF'
           } >> "$GITHUB_OUTPUT"
 
