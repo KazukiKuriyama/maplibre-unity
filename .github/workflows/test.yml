@@ -11,8 +11,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Single runner runs EditMode then PlayMode sequentially. Saves a runner
+  # slot and avoids two parallel Unity license activations consuming separate
+  # seats. Wall-clock is the sum of both modes (~15-20 min) instead of the
+  # previous ~10 min parallel matrix.
   test:
-    name: ${{ matrix.testMode }}
+    name: Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,12 +28,6 @@ jobs:
       # so the action survives the 2026-06-02 default switch / 2026-09-16
       # Node 20 removal. Drop this once unity-test-runner ships v5+.
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-    strategy:
-      fail-fast: false
-      matrix:
-        testMode:
-          - EditMode
-          - PlayMode
     steps:
       - name: Free disk space
         run: |
@@ -53,36 +51,70 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: Library
-          key: Library-${{ matrix.testMode }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          # Single Library shared across both test modes — both reuse the
+          # same Editor compilation output, so per-mode keys would just
+          # split the cache for no gain.
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-${{ matrix.testMode }}-
             Library-
 
-      - name: Run ${{ matrix.testMode }} tests
+      - name: Run EditMode tests
+        id: editmode
         uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
-        id: tests
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: 6000.3.10f1
-          testMode: ${{ matrix.testMode }}
-          artifactsPath: ${{ matrix.testMode }}-artifacts
+          testMode: EditMode
+          artifactsPath: EditMode-artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: ${{ matrix.testMode }} Test Results
+          checkName: EditMode Test Results
           coverageOptions: 'generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+MapLibre.Unity,+MapLibre.Unity.Editor'
 
-      - name: Upload test results
+      - name: Run PlayMode tests
+        id: playmode
+        # if: always() so PlayMode still runs when EditMode fails — both
+        # results show up as separate check annotations regardless.
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          name: Test results (${{ matrix.testMode }})
-          path: ${{ steps.tests.outputs.artifactsPath }}
+          unityVersion: 6000.3.10f1
+          testMode: PlayMode
+          artifactsPath: PlayMode-artifacts
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: PlayMode Test Results
+          coverageOptions: 'generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+MapLibre.Unity,+MapLibre.Unity.Editor'
 
-      - name: Upload coverage results
-        if: always()
+      - name: Upload EditMode test results
+        if: always() && steps.editmode.outputs.artifactsPath != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: Coverage results (${{ matrix.testMode }})
-          path: ${{ steps.tests.outputs.coveragePath }}
+          name: Test results (EditMode)
+          path: ${{ steps.editmode.outputs.artifactsPath }}
+
+      - name: Upload PlayMode test results
+        if: always() && steps.playmode.outputs.artifactsPath != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Test results (PlayMode)
+          path: ${{ steps.playmode.outputs.artifactsPath }}
+
+      - name: Upload EditMode coverage results
+        if: always() && steps.editmode.outputs.coveragePath != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Coverage results (EditMode)
+          path: ${{ steps.editmode.outputs.coveragePath }}
+
+      - name: Upload PlayMode coverage results
+        if: always() && steps.playmode.outputs.coveragePath != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Coverage results (PlayMode)
+          path: ${{ steps.playmode.outputs.coveragePath }}
