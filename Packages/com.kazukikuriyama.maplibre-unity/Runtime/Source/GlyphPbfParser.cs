@@ -21,7 +21,7 @@ namespace MapLibre.Unity.Source
         private const int WireFixed32 = 5;
 
         /// <summary>
-        /// Parse the supplied bytes (NOT gzip-wrapped — caller decompresses if
+        /// Parse the supplied bytes (NOT gzip-wrapped -- caller decompresses if
         /// needed, same as <see cref="VectorTileSource"/> does for vector tiles).
         /// </summary>
         public static GlyphPbf Parse(byte[] data)

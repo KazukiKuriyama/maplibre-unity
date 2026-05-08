@@ -329,7 +329,7 @@ namespace MapLibre.Unity.Tests.EditMode
             var layer = style.Layers[0];
             Assert.IsNotNull(layer.Layout);
             // The renderer reads SymbolLayoutProperties at draw-time so the
-            // raw layout dict is enough — Parse just needs to keep the values.
+            // raw layout dict is enough -- Parse just needs to keep the values.
             Assert.AreEqual("both", layer.Layout["icon-text-fit"]);
             // The padding ends up as a List<object> at this layer (parsed by
             // Newtonsoft.Json and stored in the generic dict).
@@ -393,7 +393,7 @@ namespace MapLibre.Unity.Tests.EditMode
                 ]
             }";
 
-            // We don't assert per-field — the per-feature tests above cover
+            // We don't assert per-field -- the per-feature tests above cover
             // that. This case is the integration smoke: every subsystem
             // listed parses without throwing, and the result has the
             // expected layer count.

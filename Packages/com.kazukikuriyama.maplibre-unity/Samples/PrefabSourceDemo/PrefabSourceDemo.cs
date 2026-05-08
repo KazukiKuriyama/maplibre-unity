@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace MapLibre.Unity.Samples
 {
     /// <summary>
-    /// Demonstrates <see cref="PrefabSource"/> — anchoring Unity prefabs to
+    /// Demonstrates <see cref="PrefabSource"/> -- anchoring Unity prefabs to
     /// geographic coordinates. Spawns five prefabs at notable Tokyo landmarks
     /// (one of them billboarded to the camera) and drops a new prefab on every
     /// map click. Attach to the same GameObject as MapLibreMap.
@@ -15,7 +15,7 @@ namespace MapLibre.Unity.Samples
     /// Two ways to supply a prefab are demonstrated side-by-side:
     /// <list type="number">
     /// <item>
-    /// <b>Inspector slot (recommended for production)</b> — assign a
+    /// <b>Inspector slot (recommended for production)</b> -- assign a
     /// <c>.prefab</c> asset to one of the <c>_*Prefab</c> fields below. When
     /// set, the slot's prefab is used as-is and its existing materials are
     /// preserved. The sample scene ships with <c>TowerPrefab</c> and
@@ -24,7 +24,7 @@ namespace MapLibre.Unity.Samples
     /// landmarks fall through to the runtime primitive path below.
     /// </item>
     /// <item>
-    /// <b>Runtime primitive (fallback)</b> — leave a slot empty and the demo
+    /// <b>Runtime primitive (fallback)</b> -- leave a slot empty and the demo
     /// builds a <see cref="GameObject.CreatePrimitive"/>-based template at
     /// runtime, then re-colours it so the landmarks remain visually
     /// distinguishable. Keeps the sample self-contained when no prefab asset
@@ -36,7 +36,7 @@ namespace MapLibre.Unity.Samples
     /// roughly 100–500 m so neighbouring sites do not overlap each other.
     ///
     /// <para>
-    /// Pointer events are wired on every landmark — hover scales the prefab
+    /// Pointer events are wired on every landmark -- hover scales the prefab
     /// up by 1.2×, click logs its name. Tokyo Station is also marked
     /// <see cref="PrefabInstance.Draggable"/> so you can pick it up and drop
     /// it elsewhere on the map. Clicks that land on a landmark suppress the
@@ -62,7 +62,7 @@ namespace MapLibre.Unity.Samples
         private PrefabSource _source;
 
         // Container for runtime-built primitive templates. Kept inactive so
-        // the templates themselves never render — only their clones do.
+        // the templates themselves never render -- only their clones do.
         private Transform _templateContainer;
         private GameObject _resolvedTower;
         private GameObject _resolvedStation;
@@ -85,7 +85,7 @@ namespace MapLibre.Unity.Samples
             ResolvePrefabs();
             _source = _map.AddPrefabSource(SourceId);
 
-            // 1. Tokyo Tower — tall thin cylinder.
+            // 1. Tokyo Tower -- tall thin cylinder.
             var tokyoTower = _source.Add(_resolvedTower, new LngLat(139.7454, 35.6586),
                 new PrefabPlacementOptions
                 {
@@ -95,7 +95,7 @@ namespace MapLibre.Unity.Samples
             ApplyFallbackColor(tokyoTower, _towerPrefab, new Color(0.9f, 0.25f, 0.2f));
             WirePointerEvents(tokyoTower, "Tokyo Tower");
 
-            // 2. Tokyo Station — wide low cube. Draggable so the user can
+            // 2. Tokyo Station -- wide low cube. Draggable so the user can
             // pick it up and drop it anywhere on the map.
             var station = _source.Add(_resolvedStation, new LngLat(139.7671, 35.6812),
                 new PrefabPlacementOptions
@@ -109,7 +109,7 @@ namespace MapLibre.Unity.Samples
             station.OnDragEnd += (inst, ll) =>
                 Debug.Log($"[PrefabSourceDemo] {inst.Id} dropped at {ll.Longitude:F4}, {ll.Latitude:F4}");
 
-            // 3. Senso-ji — capsule landmark.
+            // 3. Senso-ji -- capsule landmark.
             var sensoji = _source.Add(_resolvedTemple, new LngLat(139.7966, 35.7148),
                 new PrefabPlacementOptions
                 {
@@ -119,7 +119,7 @@ namespace MapLibre.Unity.Samples
             ApplyFallbackColor(sensoji, _templePrefab, new Color(0.25f, 0.7f, 0.3f));
             WirePointerEvents(sensoji, "Senso-ji");
 
-            // 4. Shibuya Crossing — sphere hovering over the intersection.
+            // 4. Shibuya Crossing -- sphere hovering over the intersection.
             var shibuya = _source.Add(_resolvedIntersection, new LngLat(139.7005, 35.6594),
                 new PrefabPlacementOptions
                 {
@@ -129,7 +129,7 @@ namespace MapLibre.Unity.Samples
             ApplyFallbackColor(shibuya, _intersectionPrefab, new Color(1f, 0.55f, 0.1f));
             WirePointerEvents(shibuya, "Shibuya Crossing");
 
-            // 5. Imperial Palace — billboarded quad that always faces the camera.
+            // 5. Imperial Palace -- billboarded quad that always faces the camera.
             var palace = _source.Add(_resolvedPalace, new LngLat(139.7528, 35.6852),
                 new PrefabPlacementOptions
                 {
@@ -142,7 +142,7 @@ namespace MapLibre.Unity.Samples
 
             _map.On(MapEventType.Click, OnMapClick);
 
-            Debug.Log("[PrefabSourceDemo] Ready — hover / click landmarks, drag Tokyo Station, click empty map to drop a cube");
+            Debug.Log("[PrefabSourceDemo] Ready -- hover / click landmarks, drag Tokyo Station, click empty map to drop a cube");
         }
 
         /// <summary>
@@ -198,8 +198,8 @@ namespace MapLibre.Unity.Samples
             EnsurePipelineCompatibleMaterial(go);
             // Keep the auto-generated collider so the prefab can receive
             // pointer events. The map's own click event is still suppressed
-            // for clicks that hit a prefab — see PrefabConsumedClickThisFrame
-            // in MapLibreMap.PrefabSources — so empty-map clicks still work.
+            // for clicks that hit a prefab -- see PrefabConsumedClickThisFrame
+            // in MapLibreMap.PrefabSources -- so empty-map clicks still work.
             go.transform.SetParent(_templateContainer, worldPositionStays: false);
             return go;
         }
@@ -207,7 +207,7 @@ namespace MapLibre.Unity.Samples
         private void EnsurePipelineCompatibleMaterial(GameObject go)
         {
             var pipeline = GraphicsSettings.currentRenderPipeline;
-            if (pipeline == null) return; // Built-in RP — Standard shader is fine
+            if (pipeline == null) return; // Built-in RP -- Standard shader is fine
 
             var fallback = ResolveFallbackMaterial(pipeline);
             if (fallback == null) return;
@@ -220,7 +220,7 @@ namespace MapLibre.Unity.Samples
         // (`UniversalRenderPipelineAsset.DefaultResources.cs` returns null
         // outside UNITY_EDITOR), so the editor-only path renders Standard /
         // magenta in builds. Borrow a sharedMaterial from any user-assigned
-        // prefab — those materials are reachable from the scene graph and are
+        // prefab -- those materials are reachable from the scene graph and are
         // therefore included in the build alongside their shader.
         private Material ResolveFallbackMaterial(RenderPipelineAsset pipeline)
         {
@@ -243,7 +243,7 @@ namespace MapLibre.Unity.Samples
 
         /// <summary>
         /// Re-colour a primitive instance so each landmark is visually
-        /// distinct. Skipped when the user supplied a custom prefab — those
+        /// distinct. Skipped when the user supplied a custom prefab -- those
         /// keep their authored materials untouched.
         /// </summary>
         private static void ApplyFallbackColor(PrefabInstance instance,

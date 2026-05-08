@@ -4,7 +4,7 @@ namespace MapLibre.Unity.Source
 {
     /// <summary>
     /// User-supplied vector tile source. Lets callers serve MVT (Mapbox Vector
-    /// Tile, MapLibre's standard PBF format) bytes from any backend — local
+    /// Tile, MapLibre's standard PBF format) bytes from any backend -- local
     /// files, custom HTTP, IPC, or generated on the fly. Mirrors the MapLibre
     /// GL JS <c>type: "custom", dataType: "vector"</c> source object.
     /// </summary>

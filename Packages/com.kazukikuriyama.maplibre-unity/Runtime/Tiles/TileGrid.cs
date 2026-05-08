@@ -149,7 +149,7 @@ namespace MapLibre.Unity
             if (camera == null) return result;
 
             // Don't request tiles deeper than the map's current zoom (matches
-            // MapLibre behavior — over-zoom is handled by stretching, not finer
+            // MapLibre behavior -- over-zoom is handled by stretching, not finer
             // tiles). Also clamp to the source's maxzoom.
             int effectiveMaxZ = System.Math.Min(maxSourceZoom,
                 System.Math.Max((int)System.Math.Floor(mapZoom), minSourceZoom));
@@ -226,7 +226,7 @@ namespace MapLibre.Unity
             float distance = Mathf.Max(Vector3.Distance(cameraPos, tileCenter), 0.01f);
             float screenSize = tileWorldWidth / distance * focalLengthPx;
 
-            // Adequate detail at this LOD — stop subdividing if at/above source min zoom.
+            // Adequate detail at this LOD -- stop subdividing if at/above source min zoom.
             if (tile.Z >= minZ && screenSize <= targetSize)
             {
                 result.Add(tile);

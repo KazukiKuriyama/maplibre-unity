@@ -30,7 +30,7 @@ namespace MapLibre.Unity.Source
         }
 
         /// <summary>
-        /// Generic <see cref="AsyncOperation"/> awaiter — completes on the
+        /// Generic <see cref="AsyncOperation"/> awaiter -- completes on the
         /// next frame after the operation finishes.
         /// </summary>
         public static Awaitable AsAwaitable(this AsyncOperation op)

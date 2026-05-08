@@ -25,7 +25,7 @@ namespace MapLibre.Unity.VectorTile
 {
     /// <summary>
     /// Polygon triangulation using the earcut algorithm.
-    /// C# port of mapbox/earcut (ISC License) — see header comment for full notice.
+    /// C# port of mapbox/earcut (ISC License) -- see header comment for full notice.
     /// Handles complex polygons with holes, robust for real-world geographic data
     /// including complex coastlines and peninsulas.
     /// </summary>
@@ -440,7 +440,7 @@ namespace MapLibre.Unity.VectorTile
             if (m == null) return null;
 
             // Look for points inside the triangle of (hole, intersection, m) that
-            // are closer to the hole point — these are better bridge candidates
+            // are closer to the hole point -- these are better bridge candidates
             var stop = m;
             float mx = m.X;
             float my = m.Y;

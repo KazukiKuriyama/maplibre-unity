@@ -11,7 +11,7 @@ namespace MapLibre.Unity.Samples
     /// (the MapLibre demotiles font endpoint) and a symbol layer that reads
     /// from a small inline GeoJSON of city points. Because <c>glyphs</c> is set,
     /// SymbolRenderer routes labels through the self-rendered SDF mesh path
-    /// instead of TextMeshPro — no TMP_FontAsset assignment needed.
+    /// instead of TextMeshPro -- no TMP_FontAsset assignment needed.
     /// Attach to the same GameObject as MapLibreMap.
     /// </summary>
     public class GlyphUrlDemo : MonoBehaviour

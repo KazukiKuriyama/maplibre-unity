@@ -13,7 +13,7 @@ namespace MapLibre.Unity.Samples
     /// reference that sprite. The pattern tiles seamlessly across the visible
     /// background plane in CSS-pixel-sized units regardless of zoom.
     ///
-    /// No basemap is fetched — the background fully fills the camera view.
+    /// No basemap is fetched -- the background fully fills the camera view.
     /// Attach to the same GameObject as MapLibreMap.
     /// </summary>
     public class BackgroundPatternDemo : MonoBehaviour
@@ -34,7 +34,7 @@ namespace MapLibre.Unity.Samples
             while (!_map.IsInitialized) yield return null;
             yield return null;
 
-            // Procedural light/dark grid — visible without any external sprite endpoint.
+            // Procedural light/dark grid -- visible without any external sprite endpoint.
             _map.AddImage("grid-pattern", BuildGridPattern(
                 new Color32(220, 230, 240, 255),
                 new Color32(180, 200, 215, 255)));

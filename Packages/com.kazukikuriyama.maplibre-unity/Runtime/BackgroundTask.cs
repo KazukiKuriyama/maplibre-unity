@@ -7,7 +7,7 @@ namespace MapLibre.Unity
     /// <summary>
     /// Platform-aware <c>Task.Run</c> wrapper. Exists because Unity 6 WebGL
     /// Player builds run on a single-threaded WebAssembly runtime by default
-    /// — <c>Task.Run</c> there does not give us a worker thread, so the work
+    /// -- <c>Task.Run</c> there does not give us a worker thread, so the work
     /// either runs synchronously inline or sits on a queue that never drains
     /// while a coroutine is polling <c>Task.IsCompleted</c>. The renderer /
     /// parser code that previously hard-coded <c>Task.Run</c> now goes through
@@ -29,7 +29,7 @@ namespace MapLibre.Unity
     internal static class BackgroundTask
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        /// <summary>True on WebGL Player builds — callers can branch when
+        /// <summary>True on WebGL Player builds -- callers can branch when
         /// they want to skip the Task wrapper entirely.</summary>
         public const bool RunsInline = true;
 #else

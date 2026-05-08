@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using MapLibre.Unity.CameraControl;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -40,7 +41,7 @@ namespace MapLibre.Unity.Samples
             while (!_map.IsInitialized)
                 yield return null;
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUi();
         }
 
@@ -107,7 +108,7 @@ namespace MapLibre.Unity.Samples
                 () =>
                 {
                     _map.JumpTo(new JumpToOptions { Center = Tokyo, Zoom = 12f, Bearing = 0f, Pitch = 0f });
-                    Log("JumpTo(Tokyo, z=12) — no animation");
+                    Log("JumpTo(Tokyo, z=12) -- no animation");
                 }));
 
             _logLabel = MakeLogLabel();

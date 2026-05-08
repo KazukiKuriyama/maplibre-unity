@@ -8,7 +8,7 @@ namespace MapLibre.Unity.Tests.EditMode
     /// Verify the MBTiles helpers without touching SQLite. We swap a stub
     /// backend in and assert that <see cref="MBTilesReader"/> performs the
     /// TMS → XYZ y-coordinate flip and surfaces metadata correctly. The
-    /// actual SQLite binding is up to the application — the renderer only
+    /// actual SQLite binding is up to the application -- the renderer only
     /// depends on the <see cref="IMBTilesBackend"/> interface.
     /// </summary>
     public class MBTilesTests

@@ -32,7 +32,7 @@ namespace MapLibre.Unity.Style
     /// </summary>
     public interface ICustomLayer
     {
-        /// <summary>Stable identifier — used by RemoveLayer / MoveLayer.</summary>
+        /// <summary>Stable identifier -- used by RemoveLayer / MoveLayer.</summary>
         string Id { get; }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace MapLibre.Unity.Style
 
         /// <summary>
         /// Called every frame while the layer is visible at the current zoom.
-        /// Most implementations only need to update Transform values here —
+        /// Most implementations only need to update Transform values here --
         /// Unity's renderer pipeline does the actual draw.
         /// </summary>
         void Render(MapLibreMap map, UnityEngine.Camera camera);
@@ -59,7 +59,7 @@ namespace MapLibre.Unity.Style
         /// <summary>
         /// Optional pre-render pass. Called for every visible custom layer
         /// before any layer's <see cref="Render"/> runs, so use this for work
-        /// that has to happen before the main pass — render-to-texture passes,
+        /// that has to happen before the main pass -- render-to-texture passes,
         /// stencil setup, copying state from another camera, and so on.
         /// Mirrors MapLibre GL JS <c>prerender</c> in <c>CustomLayerInterface</c>.
         ///
@@ -484,7 +484,7 @@ namespace MapLibre.Unity.Style
 
         /// <summary>
         /// icon-text-fit: scales the icon to fit the text it is paired with.
-        /// One of: "none" (default — independent sizing), "width", "height",
+        /// One of: "none" (default -- independent sizing), "width", "height",
         /// "both". When the icon is anchored to a text label, the renderer
         /// stretches the icon mesh to match the text bounding box on the
         /// requested axes.

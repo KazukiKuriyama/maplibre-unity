@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using MapLibre.Unity.Style;
+using MapLibre.Unity.UI;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -54,7 +55,7 @@ namespace MapLibre.Unity.Samples
             yield return null;
             AddDemoLayers();
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUI();
         }
 
@@ -429,7 +430,7 @@ namespace MapLibre.Unity.Samples
             }
 
             _resultLabel.text = sb.ToString();
-            Debug.Log($"[QueryFeaturesDemo] Click at {lngLat} — {features.Count} features found");
+            Debug.Log($"[QueryFeaturesDemo] Click at {lngLat} -- {features.Count} features found");
         }
 
         private void OnQuerySource(string sourceId)
@@ -467,7 +468,7 @@ namespace MapLibre.Unity.Samples
             }
 
             _resultLabel.text = sb.ToString();
-            Debug.Log($"[QueryFeaturesDemo] querySourceFeatures(\"{sourceId}\") — {features.Count} features");
+            Debug.Log($"[QueryFeaturesDemo] querySourceFeatures(\"{sourceId}\") -- {features.Count} features");
         }
 
         private Label MakeLabel(string text, int fontSize, Color color, FontStyle fontStyle = FontStyle.Normal)
@@ -519,7 +520,7 @@ namespace MapLibre.Unity.Samples
             btn.style.borderRightWidth = 0;
             btn.style.unityFontDefinition = StyleKeyword.None;
             btn.style.unityFont = new StyleFont(_font);
-            // Initial colour follows the active state — set after registration
+            // Initial colour follows the active state -- set after registration
             // so UpdateFilterButtonColors picks the right one.
             _filterButtons.Add((btn, layerId));
             btn.clicked += () =>

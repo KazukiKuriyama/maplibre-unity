@@ -9,7 +9,7 @@ namespace MapLibre.Unity.Samples
     /// The built-in scroller renders a 13–16px wide bar with chunky up/down
     /// arrow buttons that look out of place on the dark sample HUDs. This
     /// helper hides the buttons, narrows the bar, and replaces the track /
-    /// thumb with a transparent track + a translucent rounded thumb — the
+    /// thumb with a transparent track + a translucent rounded thumb -- the
     /// minimal "iOS-like" pattern.
     ///
     /// Apply once after the ScrollView is created. Children are rebuilt by
@@ -43,7 +43,7 @@ namespace MapLibre.Unity.Samples
 
         private static void ApplyToScroller(Scroller scroller, bool vertical)
         {
-            // Hide the up / down arrow buttons — modern UIs scroll on drag
+            // Hide the up / down arrow buttons -- modern UIs scroll on drag
             // alone and the arrows consume vertical real estate.
             if (scroller.lowButton != null)
                 scroller.lowButton.style.display = DisplayStyle.None;
@@ -53,7 +53,7 @@ namespace MapLibre.Unity.Samples
             // Size the scroller container. min/max width pinned so the
             // built-in min-width: 13px from the default sheet can't widen us.
             // Also add a small margin so the bar doesn't sit flush against
-            // the ScrollView edge — a few pixels of breathing room reads
+            // the ScrollView edge -- a few pixels of breathing room reads
             // as a polished native scrollbar.
             if (vertical)
             {
@@ -118,7 +118,7 @@ namespace MapLibre.Unity.Samples
                 }
             }
 
-            // Recolour only — leave geometry to the default stylesheet.
+            // Recolour only -- leave geometry to the default stylesheet.
             var tracker = slider.Q<VisualElement>(className: "unity-base-slider__tracker");
             if (tracker != null)
             {

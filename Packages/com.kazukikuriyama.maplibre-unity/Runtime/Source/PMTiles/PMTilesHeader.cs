@@ -41,7 +41,7 @@ namespace MapLibre.Unity.Source.PMTiles
     /// </summary>
     public sealed class PMTilesHeader
     {
-        /// <summary>Total header length in bytes — fixed by the spec.</summary>
+        /// <summary>Total header length in bytes -- fixed by the spec.</summary>
         public const int HeaderSize = 127;
 
         public ulong RootDirOffset;
@@ -81,7 +81,7 @@ namespace MapLibre.Unity.Source.PMTiles
 
         /// <summary>
         /// Parse a 127-byte header buffer. Throws when the magic / version
-        /// don't match a PMTiles v3 archive — older versions use a different
+        /// don't match a PMTiles v3 archive -- older versions use a different
         /// header layout and would silently produce garbage offsets.
         /// </summary>
         public static PMTilesHeader Parse(byte[] bytes)
@@ -98,7 +98,7 @@ namespace MapLibre.Unity.Source.PMTiles
                 throw new InvalidOperationException("Not a PMTiles archive (magic mismatch)");
             if (bytes[7] != 3)
                 throw new InvalidOperationException(
-                    $"Unsupported PMTiles version {bytes[7]} — only v3 is supported");
+                    $"Unsupported PMTiles version {bytes[7]} -- only v3 is supported");
 
             var h = new PMTilesHeader
             {

@@ -5,7 +5,7 @@ namespace MapLibre.Unity.Source.MBTiles
 {
     /// <summary>
     /// Strongly-typed view over an MBTiles <c>metadata</c> table. Spec keys
-    /// the renderer actually consumes — name / format / bounds / min/max
+    /// the renderer actually consumes -- name / format / bounds / min/max
     /// zoom / attribution. Other rows are still preserved on the underlying
     /// dictionary so callers that need them can read them directly.
     /// </summary>

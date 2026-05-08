@@ -82,7 +82,7 @@ namespace MapLibre.Unity.Style
             {
                 entry = runtime.Entry;
                 texture = runtime.Texture;
-                // Runtime images fill their own texture — UV covers the full [0,1].
+                // Runtime images fill their own texture -- UV covers the full [0,1].
                 uvRect = new Rect(0f, 0f, 1f, 1f);
                 return true;
             }
@@ -108,7 +108,7 @@ namespace MapLibre.Unity.Style
 
         /// <summary>
         /// Backwards-compatible overload. Returns the atlas texture implicitly so
-        /// older callers work unchanged — but they will see a null texture when the
+        /// older callers work unchanged -- but they will see a null texture when the
         /// entry is a runtime image. Prefer the 4-out overload for new code.
         /// </summary>
         public bool TryGetEntry(string iconName, out SpriteEntry entry, out Rect uvRect)

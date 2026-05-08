@@ -11,7 +11,7 @@ namespace MapLibre.Unity.Tests.EditMode
     /// <summary>
     /// Coverage of the public expression operators used by the style spec.
     /// Each test parses a JSON expression through <see cref="ExpressionParser"/>
-    /// — the same path the style loader uses — so we exercise both parsing
+    /// -- the same path the style loader uses -- so we exercise both parsing
     /// and evaluation. JSON literal here is more readable than constructing
     /// expression nodes by hand and matches how regressions would surface
     /// from a real style.
@@ -28,7 +28,7 @@ namespace MapLibre.Unity.Tests.EditMode
         // Build a feature whose tag table encodes the supplied JSON object.
         // Mirrors the on-disk MVT layout (key index + value index per tag)
         // because VectorTileFeature.GetProperty walks Tags via the layer's
-        // Keys/Values tables — there is no shortcut Properties dictionary.
+        // Keys/Values tables -- there is no shortcut Properties dictionary.
         private static VectorTileFeature MakeFeature(string propertiesJson, ulong id = 0)
         {
             var layer = new VectorTileLayer();
@@ -128,7 +128,7 @@ namespace MapLibre.Unity.Tests.EditMode
 
         // Runtime AddLayer typically passes paint values as plain C# arrays
         // (`new object[] { "interpolate", ... }`) instead of JArray. The parser
-        // must normalize them — otherwise the array is treated as a literal and
+        // must normalize them -- otherwise the array is treated as a literal and
         // colour expressions silently evaluate to the default (black).
         [Test]
         public void Parse_AcceptsPlainCSharpArrayAsExpression()
@@ -149,7 +149,7 @@ namespace MapLibre.Unity.Tests.EditMode
         public void Parse_AcceptsPlainCSharpArrayForColorInterpolation()
         {
             // Same shape as ColorInterpolationDemo. At zoom 10 (midpoint of
-            // [8, 12]) RGB lerp yields (0.5, 0, 0.5) — a real colour, not the
+            // [8, 12]) RGB lerp yields (0.5, 0, 0.5) -- a real colour, not the
             // black default that signals "expression not recognised".
             var raw = new object[]
             {
@@ -166,7 +166,7 @@ namespace MapLibre.Unity.Tests.EditMode
             Assert.That(c.b, Is.EqualTo(0.5f).Within(0.01f));
         }
 
-        // text-font is a string-array literal (e.g. ["Open Sans Regular"]) —
+        // text-font is a string-array literal (e.g. ["Open Sans Regular"]) --
         // not an expression. Earlier the parser would route it through
         // ParseExpression with an "unknown operator" warning and collapse to
         // LiteralExpression(null), silently breaking SDF glyph fetching. Both

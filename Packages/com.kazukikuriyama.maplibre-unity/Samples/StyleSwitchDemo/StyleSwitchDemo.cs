@@ -27,8 +27,8 @@ namespace MapLibre.Unity.Samples
         [Header("Layer ids to flip between")]
         [Tooltip("Layer ids declared in the scene's initial style JSON. The " +
                  "selected layer's visibility is set to 'visible' and all " +
-                 "others to 'none'. This is much lighter than SetStyle() — " +
-                 "no teardown of sources / renderers — and avoids the editor " +
+                 "others to 'none'. This is much lighter than SetStyle() -- " +
+                 "no teardown of sources / renderers -- and avoids the editor " +
                  "freeze that a full SetStyle path can cause when multiple " +
                  "raster sources are swapped on the main thread.")]
         [SerializeField] private string[] _layerIds = new[]
@@ -72,7 +72,7 @@ namespace MapLibre.Unity.Samples
             while (!_map.IsInitialized)
                 yield return null;
 
-            // The style JSON's center/zoom may not match the demo's intent —
+            // The style JSON's center/zoom may not match the demo's intent --
             // snap to the demo target so the visual differences between
             // basemaps show at the same Tokyo view.
             ApplyTargetView();
@@ -92,7 +92,7 @@ namespace MapLibre.Unity.Samples
 
             // Process a deferred switch first. SwitchToStyle queues here from
             // OnGUI / keyboard so the actual SetLayoutProperty calls don't
-            // happen mid-render — even though visibility flipping is light,
+            // happen mid-render -- even though visibility flipping is light,
             // running renderer mutations during OnGUI is risky.
             if (_pendingSwitchIndex.HasValue)
             {
@@ -157,7 +157,7 @@ namespace MapLibre.Unity.Samples
         {
             if (_map == null || _map.State == null) return;
 
-            // Default IMGUI font is ~12pt — readable on a 1080p display but
+            // Default IMGUI font is ~12pt -- readable on a 1080p display but
             // unusable on Retina / high-DPI screens. Build a one-off style
             // sized to the screen height so the labels stay legible.
             int fontSize = Mathf.Max(20, Screen.height / 40);
@@ -171,7 +171,7 @@ namespace MapLibre.Unity.Samples
             }
 
             // Width scales with font size so the longest label
-            // ("[CartoDB Voyager]" — 17 chars including the active brackets)
+            // ("[CartoDB Voyager]" -- 17 chars including the active brackets)
             // fits without truncation on Retina / 4K displays. A fixed 240px
             // worked at 1080p but clipped the text once Screen.height/40
             // pushed font size past ~24.

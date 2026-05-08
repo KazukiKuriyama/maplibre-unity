@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 namespace MapLibre.Unity.Rendering
 {
     /// <summary>
-    /// symbol-placement: "line" path. Lays text along LineString geometry —
+    /// symbol-placement: "line" path. Lays text along LineString geometry --
     /// either by warping a TMP mesh or by baking a curved SDF mesh through
     /// <see cref="SdfLineTextMeshBuilder"/>. All of the path-sampling /
     /// max-angle / left-to-right helpers used by both flows live here too.
@@ -55,7 +55,7 @@ namespace MapLibre.Unity.Rendering
             float invExtent = 1f / tileLayer.Extent;
 
             float fh = _lastFrustumHeight;
-            // Defer line placement until frustumHeight is available — textScale=0 would
+            // Defer line placement until frustumHeight is available -- textScale=0 would
             // collapse all vertices to a single point and produce invisible labels.
             if (fh <= 0f)
             {
@@ -105,7 +105,7 @@ namespace MapLibre.Unity.Rendering
 
                     float pathLength = ComputePathLength(worldPath);
 
-                    // Create TMP to measure text width — must be active for ForceMeshUpdate
+                    // Create TMP to measure text width -- must be active for ForceMeshUpdate
                     var go = CreateTextObject(text, textSize, textColor, textOpacity, haloColor, haloWidth);
                     var tmp = go.GetComponent<TextMeshPro>();
                     tmp.ForceMeshUpdate();
@@ -208,7 +208,7 @@ namespace MapLibre.Unity.Rendering
         // <c>preferredWidth</c> from a temporarily-instantiated TextMeshPro to size
         // labels along the curve; here we measure once via the glyph atlas and bake
         // the curved mesh up front. The trade-off is that the mesh is frozen at the
-        // dispatch zoom — pan still tracks via parent-localPosition updates, but a
+        // dispatch zoom -- pan still tracks via parent-localPosition updates, but a
         // major zoom change requires the tile to be re-issued (which TileManager
         // does at zoom step boundaries).
         private void ShowTileLinePlacementSdf(CanonicalTileID tileId, VectorTileLayer tileLayer,
@@ -243,7 +243,7 @@ namespace MapLibre.Unity.Rendering
             float invExtent = 1f / tileLayer.Extent;
 
             float fh = _lastFrustumHeight;
-            // Defer line placement until frustumHeight is available — textScale=0 would
+            // Defer line placement until frustumHeight is available -- textScale=0 would
             // collapse all vertices to a single point and produce invisible labels.
             if (fh <= 0f)
             {
@@ -367,7 +367,7 @@ namespace MapLibre.Unity.Rendering
                         lineLabels.Add(new LineLabelData
                         {
                             Go = go,
-                            Tmp = null, // SDF entry — UpdateAllPositions skips re-warping
+                            Tmp = null, // SDF entry -- UpdateAllPositions skips re-warping
                             TileId = tileId,
                             NormalizedPath = normalizedPath,
                             CharCount = text.Length,
@@ -389,7 +389,7 @@ namespace MapLibre.Unity.Rendering
                 _tilesWithMissingGlyphs.Add(tileId);
         }
 
-        /// <summary>Filter features for line placement — only LineString geometry.</summary>
+        /// <summary>Filter features for line placement -- only LineString geometry.</summary>
         private List<VectorTileFeature> FilterFeaturesForLine(VectorTileLayer layer,
             Expression filter, float zoom, string sourceId, string sourceLayer)
         {
@@ -481,7 +481,7 @@ namespace MapLibre.Unity.Rendering
         /// <summary>
         /// If the text along this path would render right-to-left on screen, reverse the
         /// path so it reads left-to-right. The screen-X direction depends on the camera
-        /// bearing — at bearing=0 it equals world +X, at bearing=90 it equals world -Z.
+        /// bearing -- at bearing=0 it equals world +X, at bearing=90 it equals world -Z.
         /// Pass <paramref name="bearingDeg"/>=0 to fall back to world-X comparison.
         /// </summary>
         private static Vector2[] EnsureLeftToRight(Vector2[] path, float midDist, float textWidth,
@@ -512,7 +512,7 @@ namespace MapLibre.Unity.Rendering
             return path;
         }
 
-        // Backward-compat overload — defaults to bearing=0 (world-X check).
+        // Backward-compat overload -- defaults to bearing=0 (world-X check).
         private static Vector2[] EnsureLeftToRight(Vector2[] path, float midDist, float textWidth,
             out bool wasReversed)
             => EnsureLeftToRight(path, midDist, textWidth, 0f, out wasReversed);
@@ -546,7 +546,7 @@ namespace MapLibre.Unity.Rendering
                 acc += segLen;
             }
 
-            // Past the end — clamp to last segment
+            // Past the end -- clamp to last segment
             position = path[path.Length - 1];
             tangent = (path[path.Length - 1] - path[path.Length - 2]).normalized;
         }

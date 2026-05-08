@@ -9,7 +9,7 @@ namespace MapLibre.Unity.Samples
 {
     /// <summary>
     /// Demonstrates ICustomRasterSource. A procedural source generates each
-    /// raster tile on-the-fly from a deterministic value-noise function — no
+    /// raster tile on-the-fly from a deterministic value-noise function -- no
     /// network involved. Useful as a template for serving tiles from custom
     /// backends (local files, IPC, render-to-texture, etc.).
     /// Attach to the same GameObject as MapLibreMap.

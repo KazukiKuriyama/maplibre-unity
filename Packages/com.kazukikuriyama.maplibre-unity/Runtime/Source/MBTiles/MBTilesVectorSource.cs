@@ -5,7 +5,7 @@ namespace MapLibre.Unity.Source.MBTiles
     /// <summary>
     /// <see cref="ICustomVectorSource"/> backed by an MBTiles SQLite file.
     /// Use when the metadata's <c>format</c> is <c>"pbf"</c>. Tile rows are
-    /// usually gzip-wrapped — the existing <c>VectorTileSource</c> pipeline
+    /// usually gzip-wrapped -- the existing <c>VectorTileSource</c> pipeline
     /// detects the gzip magic and unwraps before parsing, so we just hand
     /// raw bytes through.
     /// Add via <c>map.AddSource(id, new MBTilesVectorSource(reader))</c>.

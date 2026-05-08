@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 namespace MapLibre.Unity
 {
     /// <summary>
-    /// Unity-only PrefabSource surface — AddPrefabSource / GetPrefabSource /
+    /// Unity-only PrefabSource surface -- AddPrefabSource / GetPrefabSource /
     /// RemovePrefabSource and the per-frame world-position update hook.
     /// PrefabSource lets callers anchor arbitrary GameObjects (3D models, FX,
     /// agents, ...) to geographic coordinates. It is intentionally not part of

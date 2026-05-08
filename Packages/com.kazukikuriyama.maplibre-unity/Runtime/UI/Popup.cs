@@ -189,7 +189,7 @@ namespace MapLibre.Unity.UI
             card.style.minWidth = 100;
 
             // Explicitly set a font so text renders even without a PanelSettings theme
-            var font = Font.CreateDynamicFontFromOSFont("Arial", 12);
+            var font = SystemFontFallback.Resolve("Arial", 12);
 
             // Header with optional close/delete buttons
             if (_closeButton || _deleteButton)

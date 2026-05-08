@@ -7,7 +7,7 @@ namespace MapLibre.Unity.Editor
 {
     /// <summary>
     /// Ensures TMP Essential Resources are imported. Silently imports them
-    /// on editor load when missing — Symbol layers (text/icons) require them.
+    /// on editor load when missing -- Symbol layers (text/icons) require them.
     /// </summary>
     [InitializeOnLoad]
     internal static class TMPEssentialsCheck

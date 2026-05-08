@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 namespace MapLibre.Unity.CameraControl
 {
     /// <summary>
-    /// Handles user input for map navigation — matches MapLibre GL JS default gestures.
+    /// Handles user input for map navigation -- matches MapLibre GL JS default gestures.
     /// Mouse: left-drag = pan, scroll = zoom,
     ///   right-drag = bearing (horizontal) + pitch (vertical),
     ///   double-click = zoom in, shift+double-click = zoom out.
@@ -565,7 +565,7 @@ namespace MapLibre.Unity.CameraControl
 
             if (_activeTouchCount != 2)
             {
-                // Gesture start — snapshot initial state
+                // Gesture start -- snapshot initial state
                 _touch0Start = p0;
                 _touch1Start = p1;
                 _touch0Pos = p0;

@@ -143,7 +143,7 @@ namespace MapLibre.Unity
 
                     foreach (var feature in vtLayer.Features)
                     {
-                        // Deduplicate by (sourceLayer, featureId) — skip features with Id=0 (unset)
+                        // Deduplicate by (sourceLayer, featureId) -- skip features with Id=0 (unset)
                         if (feature.Id != 0)
                         {
                             var key = (vtLayer.Name, feature.Id);
@@ -215,7 +215,7 @@ namespace MapLibre.Unity
                     {
                         var lineProps = StyleParser.ParseLinePaint(layer.Paint);
                         float lineWidth = lineProps.ResolveLineWidth(ctx);
-                        // line-width is in pixels — convert to tile units using the same factor
+                        // line-width is in pixels -- convert to tile units using the same factor
                         tolerance += lineWidth * 0.5f * toleranceTileUnits / 3f;
                     }
 

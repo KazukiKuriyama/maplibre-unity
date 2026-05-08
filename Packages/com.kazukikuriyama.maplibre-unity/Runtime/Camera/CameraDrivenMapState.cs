@@ -5,7 +5,7 @@ namespace MapLibre.Unity.CameraControl
     /// <summary>
     /// Lets an external camera rig (Cinemachine, Timeline, FPS controllers,
     /// custom orbit scripts) drive the map's camera transform while keeping
-    /// <see cref="MapState"/> — and therefore tile loading — synchronised
+    /// <see cref="MapState"/> -- and therefore tile loading -- synchronised
     /// every frame.
     /// </summary>
     /// <remarks>

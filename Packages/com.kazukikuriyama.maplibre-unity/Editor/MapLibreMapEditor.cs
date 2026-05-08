@@ -100,7 +100,7 @@ namespace MapLibre.Unity.Editor
             }
 
             // Validate the JSON content (covers both inline edits and file-backed
-            // assignments — a corrupt file is just as broken as a corrupt inline string).
+            // assignments -- a corrupt file is just as broken as a corrupt inline string).
             if (!string.IsNullOrEmpty(_styleJson.stringValue))
             {
                 string error = GetCachedValidationError(_styleJson.stringValue);
@@ -112,7 +112,7 @@ namespace MapLibre.Unity.Editor
 
             // --- Initial View ---
             // Inspector fields override the style JSON when set (matches MapLibre GL JS
-            // constructor options). A field is "unset" when its value is NaN — the
+            // constructor options). A field is "unset" when its value is NaN -- the
             // effective value then comes from the style JSON (or 0 if neither has it).
             double? styleZoom = null;
             double? styleLng = null;
@@ -136,7 +136,7 @@ namespace MapLibre.Unity.Editor
                 }
                 catch
                 {
-                    // Invalid JSON — ignore
+                    // Invalid JSON -- ignore
                 }
             }
 
@@ -216,7 +216,7 @@ namespace MapLibre.Unity.Editor
         private static string FormatStyleHint(string keyName, double? styleValue) =>
             styleValue.HasValue
                 ? $"(using style.{keyName} = {styleValue.Value})"
-                : $"(using default 0 — style has no {keyName})";
+                : $"(using default 0 -- style has no {keyName})";
 
         private string GetCachedValidationError(string json)
         {

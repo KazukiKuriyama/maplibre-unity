@@ -26,7 +26,7 @@ namespace MapLibre.Unity.Style
 
         /// <summary>
         /// Style root "light" property. Controls directional/ambient lighting for
-        /// 3D layers (fill-extrusion). Optional — null falls back to defaults.
+        /// 3D layers (fill-extrusion). Optional -- null falls back to defaults.
         /// </summary>
         public LightDefinition Light;
 

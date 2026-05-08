@@ -219,7 +219,7 @@ namespace MapLibre.Unity.Samples
                 }"));
 
                 _map.RefreshTiles();
-                Debug.Log("[RuntimeGeoJsonDemo] Data updated — added 3 new points");
+                Debug.Log("[RuntimeGeoJsonDemo] Data updated -- added 3 new points");
             }
         }
     }

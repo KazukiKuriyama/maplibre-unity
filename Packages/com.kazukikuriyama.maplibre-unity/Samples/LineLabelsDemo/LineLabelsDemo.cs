@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using MapLibre.Unity.Style;
+using MapLibre.Unity.UI;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,7 +9,7 @@ using UnityEngine.UIElements;
 namespace MapLibre.Unity.Samples
 {
     /// <summary>
-    /// Demonstrates symbol-placement: "line" — text labels that follow line geometry.
+    /// Demonstrates symbol-placement: "line" -- text labels that follow line geometry.
     /// Features:
     ///   - "line" vs "point" placement toggle to compare behavior
     ///   - symbol-spacing slider for interactive label density control
@@ -50,7 +51,7 @@ namespace MapLibre.Unity.Samples
             yield return new WaitForSeconds(_initialDelay);
 
             SetupDemoData();
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUI();
         }
 
@@ -142,7 +143,7 @@ namespace MapLibre.Unity.Samples
             root.style.right = 0;
             root.style.bottom = 0;
 
-            // Panel container — bottom-left, viewport-relative width.
+            // Panel container -- bottom-left, viewport-relative width.
             var panel = new VisualElement
             {
                 style =
@@ -208,7 +209,7 @@ namespace MapLibre.Unity.Samples
             _logLabel.pickingMode = PickingMode.Ignore;
             panel.Add(_logLabel);
 
-            Log("Ready — symbol-placement: \"line\"");
+            Log("Ready -- symbol-placement: \"line\"");
         }
 
         // ────────────────────────────────────────────

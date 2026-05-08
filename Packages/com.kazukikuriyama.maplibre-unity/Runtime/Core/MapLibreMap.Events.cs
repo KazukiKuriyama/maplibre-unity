@@ -85,7 +85,7 @@ namespace MapLibre.Unity
             bool isTransient = false)
         {
             // Transient failures (network blips, parse timeouts on slow tiles)
-            // happen during normal use — log as warning to keep the Unity
+            // happen during normal use -- log as warning to keep the Unity
             // console actionable. The MapEvent still fires as Error so user
             // code that subscribes to MapEventType.Error still hears about it.
             if (isTransient)

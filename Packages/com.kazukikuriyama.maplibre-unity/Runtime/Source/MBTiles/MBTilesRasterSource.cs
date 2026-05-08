@@ -40,7 +40,7 @@ namespace MapLibre.Unity.Source.MBTiles
 
             if (bytes == null || bytes.Length == 0)
             {
-                // Sparse cell — not an error per the MBTiles spec.
+                // Sparse cell -- not an error per the MBTiles spec.
                 onError?.Invoke("MBTiles tile not in archive");
                 return;
             }

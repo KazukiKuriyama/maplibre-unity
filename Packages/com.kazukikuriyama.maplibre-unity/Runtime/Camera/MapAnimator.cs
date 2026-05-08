@@ -321,7 +321,7 @@ namespace MapLibre.Unity.CameraControl
     }
 
     /// <summary>
-    /// Options for MapLibreMap.JumpTo() — instant (non-animated) camera move.
+    /// Options for MapLibreMap.JumpTo() -- instant (non-animated) camera move.
     /// Matches MapLibre GL JS CameraOptions used by map.jumpTo().
     /// Only non-null fields are applied so callers can update a subset of the state.
     /// </summary>

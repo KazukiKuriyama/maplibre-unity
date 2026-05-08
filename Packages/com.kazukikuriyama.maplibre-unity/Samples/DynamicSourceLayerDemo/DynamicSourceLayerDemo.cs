@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using MapLibre.Unity.Source;
 using MapLibre.Unity.Style;
+using MapLibre.Unity.UI;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -39,7 +40,7 @@ namespace MapLibre.Unity.Samples
             // Wait an extra frame so MapLibreMap finishes its own UI setup
             yield return null;
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUI();
         }
 
@@ -318,7 +319,7 @@ namespace MapLibre.Unity.Samples
 
             _map.RemoveSource(id);
             if (_map.GetSource(id) != null)
-                Log($"removeSource('{id}'): blocked — remove layers first");
+                Log($"removeSource('{id}'): blocked -- remove layers first");
             else
                 Log($"removeSource('{id}') OK");
         }
@@ -329,7 +330,7 @@ namespace MapLibre.Unity.Samples
         {
             if (_map.GetSource("parks") == null)
             {
-                Log("addLayer: source 'parks' not found — add it first");
+                Log("addLayer: source 'parks' not found -- add it first");
                 return;
             }
 
@@ -385,7 +386,7 @@ namespace MapLibre.Unity.Samples
         {
             if (_map.GetSource("stations") == null)
             {
-                Log("addLayer: source 'stations' not found — add it first");
+                Log("addLayer: source 'stations' not found -- add it first");
                 return;
             }
 

@@ -62,7 +62,7 @@ namespace MapLibre.Unity
             }
 
             string bucket = FeatureStateBucket(feature.Source, feature.SourceLayer);
-            // GetOrAdd is atomic — if two threads race here they both see the
+            // GetOrAdd is atomic -- if two threads race here they both see the
             // same (first-winner) inner dictionary, so the foreach below still
             // merges into a single canonical store.
             var perFeature = _featureStates.GetOrAdd(bucket,
@@ -85,7 +85,7 @@ namespace MapLibre.Unity
 
         /// <summary>
         /// Returns a copy of all state values registered for the feature, or an
-        /// empty dictionary when none have been set. The copy is a snapshot —
+        /// empty dictionary when none have been set. The copy is a snapshot --
         /// subsequent SetFeatureState calls won't mutate the returned dictionary.
         /// </summary>
         public Dictionary<string, object> GetFeatureState(FeatureSelector feature)
@@ -152,7 +152,7 @@ namespace MapLibre.Unity
             if (removedAny) InvalidateFeatureStateRender(sourceId);
         }
 
-        // IFeatureStateStore — used by FeatureStateExpression on hot evaluation paths.
+        // IFeatureStateStore -- used by FeatureStateExpression on hot evaluation paths.
         // Explicit interface implementation keeps the four-arg lookup out of the
         // public API surface; users should go through GetFeatureState(FeatureSelector).
         object Expressions.IFeatureStateStore.GetFeatureState(string sourceId, string sourceLayer,

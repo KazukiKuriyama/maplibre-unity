@@ -10,7 +10,7 @@ namespace MapLibre.Unity.Tests.EditMode
     /// rounding makes that brittle) but rather that:
     /// 1. Conversions round-trip with low loss.
     /// 2. The endpoints of an interpolation reproduce the input colours.
-    /// 3. HCL midpoints differ from RGB midpoints in the expected direction —
+    /// 3. HCL midpoints differ from RGB midpoints in the expected direction --
     ///    "red→blue" stays vivid in HCL (passing through purple) but dips
     ///    through grey in RGB.
     /// </summary>
@@ -131,7 +131,7 @@ namespace MapLibre.Unity.Tests.EditMode
             // 350° → 10° is a 20° arc going forward (through 0°), not a 340°
             // arc going backward. Express it through near-red colours:
             // hue 350 ≈ pinkish-red, hue 10 ≈ orange-red. The midpoint should
-            // be very close to pure red (hue 0) — well within the chromatic
+            // be very close to pure red (hue 0) -- well within the chromatic
             // span of red, never approaching cyan/teal which would mean the
             // long way around the wheel.
             var pinkishRed = new Color(0.9f, 0.1f, 0.3f);

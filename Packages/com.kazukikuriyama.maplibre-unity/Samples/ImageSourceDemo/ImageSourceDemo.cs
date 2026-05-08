@@ -19,7 +19,7 @@ namespace MapLibre.Unity.Samples
         [Header("Overlay image (assign a Unity built-in or project texture)")]
         [SerializeField] private Texture2D _overlayTexture;
 
-        [Header("Overlay corners (lng, lat) — default covers central Tokyo")]
+        [Header("Overlay corners (lng, lat) -- default covers central Tokyo")]
         [SerializeField] private Vector2 _topLeft = new(139.70f, 35.71f);
         [SerializeField] private Vector2 _topRight = new(139.82f, 35.71f);
         [SerializeField] private Vector2 _bottomRight = new(139.82f, 35.65f);

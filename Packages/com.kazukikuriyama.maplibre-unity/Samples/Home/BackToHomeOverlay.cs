@@ -1,3 +1,4 @@
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -51,7 +52,7 @@ namespace MapLibre.Unity.Samples
 
         private void Start()
         {
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             _uiDoc = gameObject.AddComponent<UIDocument>();
 
             var fallback = Resources.FindObjectsOfTypeAll<PanelSettings>();

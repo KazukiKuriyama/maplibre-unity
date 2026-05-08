@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace MapLibre.Unity.VectorTile
 {
@@ -36,33 +37,52 @@ namespace MapLibre.Unity.VectorTile
         private const int ValueFieldBool = 7;
 
         /// <summary>
-        /// Parse raw MVT binary data into a VectorTileData structure.
+        /// Parse raw MVT binary data into a VectorTileData structure. Eager:
+        /// reads every layer up-front before returning, suitable for use
+        /// inside <see cref="System.Threading.Tasks.Task.Run"/> on threaded
+        /// platforms where the calling coroutine is happy to wait.
         /// </summary>
         public static VectorTileData Parse(byte[] data)
+        {
+            var tile = new VectorTileData();
+            foreach (var layer in ParseLazy(data))
+                tile._layers.Add(layer);
+            return tile;
+        }
+
+        /// <summary>
+        /// Parse raw MVT binary data into a sequence of <see cref="VectorTileLayer"/>
+        /// values, yielded one at a time. Lets callers (e.g. the WebGL
+        /// single-thread tile pipeline) consume layers with a per-frame time
+        /// budget and yield back to the main loop between layers, avoiding
+        /// the freeze that an eager <see cref="Parse(byte[])"/> would cause
+        /// when there is no real worker thread to run the parse on.
+        ///
+        /// The yielded layers are appended to a fresh <see cref="VectorTileData"/>
+        /// by the synchronous wrapper above, so the two APIs return
+        /// equivalent data -- same set of layers, same internal state, just
+        /// produced incrementally.
+        /// </summary>
+        public static IEnumerable<VectorTileLayer> ParseLazy(byte[] data)
         {
             if (data == null || data.Length == 0)
                 throw new ArgumentException("Vector tile data is null or empty");
 
-            var tile = new VectorTileData();
             var reader = new PbfReader(data);
-
             while (reader.HasMore)
             {
                 var (fieldNumber, wireType) = reader.ReadTag();
-
                 if (fieldNumber == TileFieldLayers && wireType == 2)
                 {
                     var layer = ParseLayer(reader.ReadMessage());
                     if (layer != null)
-                        tile._layers.Add(layer);
+                        yield return layer;
                 }
                 else
                 {
                     reader.Skip(wireType);
                 }
             }
-
-            return tile;
         }
 
         private static VectorTileLayer ParseLayer(PbfReader reader)

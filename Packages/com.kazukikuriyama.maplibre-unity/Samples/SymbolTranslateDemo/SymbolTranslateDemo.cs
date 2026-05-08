@@ -16,13 +16,13 @@ namespace MapLibre.Unity.Samples
     ///
     /// Switch <c>text-translate-anchor</c> between "map" and "viewport" by
     /// editing the constant below to compare bearing-locked vs screen-locked
-    /// offsets — rotate the map (right-drag) and the "viewport" anchor stays
+    /// offsets -- rotate the map (right-drag) and the "viewport" anchor stays
     /// fixed on screen while "map" rotates with the world.
     /// Attach to the same GameObject as MapLibreMap.
     /// </summary>
     public class SymbolTranslateDemo : MonoBehaviour
     {
-        // Try "map" then rotate the map (right-drag) — the offset rotates with
+        // Try "map" then rotate the map (right-drag) -- the offset rotates with
         // the world. Switch to "viewport" and the offset stays screen-aligned.
         private const string TranslateAnchor = "map";
 
@@ -65,7 +65,7 @@ namespace MapLibre.Unity.Samples
             yield return null;
             yield return null;
 
-            // Visible anchor — solid red dot at the actual feature coordinate.
+            // Visible anchor -- solid red dot at the actual feature coordinate.
             _map.AddLayer(new LayerDefinition
             {
                 Id = "anchor-dot",
@@ -81,7 +81,7 @@ namespace MapLibre.Unity.Samples
                 }
             }, triggerRefresh: false);
 
-            // Baseline label — black, no translate. Sits exactly on the dot.
+            // Baseline label -- black, no translate. Sits exactly on the dot.
             _map.AddLayer(new LayerDefinition
             {
                 Id = "label-baseline",
@@ -103,7 +103,7 @@ namespace MapLibre.Unity.Samples
                 }
             }, triggerRefresh: false);
 
-            // Translated label — same source, shifted +40px right / -30px up
+            // Translated label -- same source, shifted +40px right / -30px up
             // (CSS y points down, so y=-30 = 30 px up on screen).
             _map.AddLayer(new LayerDefinition
             {

@@ -57,7 +57,7 @@ namespace MapLibre.Unity.Samples
         private void AddDemoSource()
         {
             // Three Tokyo polygons with stable feature ids (1-3). Stable ids are
-            // required for SetFeatureState — they're how the map remembers which
+            // required for SetFeatureState -- they're how the map remembers which
             // feature is hovered/selected.
             _map.AddSource(SourceId, new SourceDefinition
             {
@@ -157,7 +157,7 @@ namespace MapLibre.Unity.Samples
 
         private void OnMouseLeave(MapEvent e)
         {
-            // Cursor left the map area — clear any active hover so the
+            // Cursor left the map area -- clear any active hover so the
             // polygon doesn't stay yellow when the user looks away.
             if (_hoveredId == 0) return;
             _map.SetFeatureState(

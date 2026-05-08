@@ -70,7 +70,7 @@ namespace MapLibre.Unity.Tests.EditMode
         [Test]
         public void LngLat_Equality_IsBitExact_AndHashAgrees()
         {
-            // Equals/== must be bit-exact (so hash agrees) — same coordinates
+            // Equals/== must be bit-exact (so hash agrees) -- same coordinates
             // hash the same, slightly different ones do not compare equal.
             var a = new LngLat(139.7670, 35.6814);
             var b = new LngLat(139.7670, 35.6814);
@@ -102,7 +102,7 @@ namespace MapLibre.Unity.Tests.EditMode
             Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
 
             // One-ULP difference (~1.1e-16 at 0.5). Plain "0.5 + 1e-18" would
-            // round back to 0.5 since the addend is below the local ULP —
+            // round back to 0.5 since the addend is below the local ULP --
             // useless as a "different" value. BitConverter gives a portable
             // ULP-step on Unity's .NET Standard 2.0 (no Math.BitIncrement).
             double oneUlpAbove = BitConverter.Int64BitsToDouble(
@@ -210,7 +210,7 @@ namespace MapLibre.Unity.Tests.EditMode
             var (nw, se) = CoordinateConversion.TileBounds(ix, iy, 12);
             Assert.LessOrEqual(nw.Longitude, input.Longitude);
             Assert.GreaterOrEqual(se.Longitude, input.Longitude);
-            // NW is the *northern* edge — latitude is larger there.
+            // NW is the *northern* edge -- latitude is larger there.
             Assert.GreaterOrEqual(nw.Latitude, input.Latitude);
             Assert.LessOrEqual(se.Latitude, input.Latitude);
         }

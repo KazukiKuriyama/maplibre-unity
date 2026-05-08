@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MapLibre.Unity.Style;
+using MapLibre.Unity.UI;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -50,7 +51,7 @@ namespace MapLibre.Unity.Samples
             // Add demo sources and layers
             SetupDemoData();
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUI();
         }
 
@@ -212,7 +213,7 @@ namespace MapLibre.Unity.Samples
             root.style.right = 0;
             root.style.bottom = 0;
 
-            // Panel container — viewport-relative width, capped at the
+            // Panel container -- viewport-relative width, capped at the
             // original 480px so it fits comfortably on a 1920×1080 monitor
             // without crowding smaller displays.
             var panel = new VisualElement

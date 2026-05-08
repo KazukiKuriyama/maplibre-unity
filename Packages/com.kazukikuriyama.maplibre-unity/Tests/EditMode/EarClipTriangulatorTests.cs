@@ -44,7 +44,7 @@ namespace MapLibre.Unity.Tests.EditMode
         [Test]
         public void Triangulate_CollinearPoints_ProducesNoTriangles()
         {
-            // Three collinear points have zero area — the FilterPoints pass
+            // Three collinear points have zero area -- the FilterPoints pass
             // collapses them and the output should be empty.
             var (_, idx) = EarClipTriangulator.Triangulate(new List<Vector2>
             {
@@ -109,7 +109,7 @@ namespace MapLibre.Unity.Tests.EditMode
         [Test]
         public void Triangulate_Square_WindingAgnostic()
         {
-            // CW and CCW exterior rings must triangulate to the same area —
+            // CW and CCW exterior rings must triangulate to the same area --
             // the triangulator auto-detects winding via signed-area check.
             var cw = new List<Vector2>
             {
@@ -154,7 +154,7 @@ namespace MapLibre.Unity.Tests.EditMode
         [Test]
         public void Triangulate_PentagonIsSimplePolygonCount()
         {
-            // Regular-ish pentagon — vertex count 5 → 3 triangles.
+            // Regular-ish pentagon -- vertex count 5 → 3 triangles.
             var ring = new List<Vector2>
             {
                 new Vector2(0, 0),
@@ -181,7 +181,7 @@ namespace MapLibre.Unity.Tests.EditMode
             };
             var hole = new List<Vector2>
             {
-                // Hole winding opposite to outer — earcut auto-detects.
+                // Hole winding opposite to outer -- earcut auto-detects.
                 new Vector2(3, 3), new Vector2(3, 7),
                 new Vector2(7, 7), new Vector2(7, 3),
             };

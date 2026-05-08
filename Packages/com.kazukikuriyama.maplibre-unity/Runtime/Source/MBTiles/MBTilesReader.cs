@@ -22,7 +22,7 @@ namespace MapLibre.Unity.Source.MBTiles
         /// <summary>
         /// Open <paramref name="filePath"/> via the backend, parse metadata.
         /// Throws when the backend can't open the file or the file is missing
-        /// the <c>tiles</c>/<c>metadata</c> tables — both turn into "no map
+        /// the <c>tiles</c>/<c>metadata</c> tables -- both turn into "no map
         /// at all" so failing fast is the right behaviour.
         /// </summary>
         public void Open(string filePath)
@@ -33,7 +33,7 @@ namespace MapLibre.Unity.Source.MBTiles
 
         /// <summary>
         /// Look up a tile by XYZ coordinates. Returns null when the database
-        /// has no row for this tile — sparse archives are normal in MBTiles.
+        /// has no row for this tile -- sparse archives are normal in MBTiles.
         /// </summary>
         public byte[] GetTile(int z, int x, int y)
         {

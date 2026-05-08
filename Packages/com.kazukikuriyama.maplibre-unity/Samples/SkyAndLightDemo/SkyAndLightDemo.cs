@@ -1,5 +1,6 @@
 using System.Collections;
 using MapLibre.Unity.Style;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -39,12 +40,12 @@ namespace MapLibre.Unity.Samples
             }
             while (!_map.IsInitialized) yield return null;
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUi();
             // Initial JumpTo + apply is deferred behind the first user slider
             // interaction (see ApplyOnFirstInteraction). Doing it during scene
             // boot triggered an intermittent PlayMode-test hang specifically
-            // when this scene loaded right after another sample — likely a
+            // when this scene loaded right after another sample -- likely a
             // teardown timing issue between SymbolRenderer / SkyRenderer
             // re-initialisation and our SetSky / SetLight calls. Keeping
             // boot side-effect-free dodges that race entirely.

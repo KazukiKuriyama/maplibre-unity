@@ -1,5 +1,6 @@
 using System.Collections;
 using MapLibre.Unity.CameraControl;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -41,7 +42,7 @@ namespace MapLibre.Unity.Samples
             }
             while (!_map.IsInitialized) yield return null;
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             _map.JumpTo(new JumpToOptions { Center = OrbitCenter, Zoom = 9f });
             BuildUi();
         }
@@ -74,7 +75,7 @@ namespace MapLibre.Unity.Samples
             if (_summary != null)
                 _summary.text =
                     $"yaw={_yawDeg:F0}° pitch={_pitchDeg:F0}° radius={_radiusWorld:F0}u\n" +
-                    $"speed={_orbitSpeed:F0}°/s — built-in input disabled while orbiting";
+                    $"speed={_orbitSpeed:F0}°/s -- built-in input disabled while orbiting";
         }
 
         // ── UI ──
@@ -135,7 +136,7 @@ namespace MapLibre.Unity.Samples
                 // Disable the built-in input handler while we own the camera so
                 // mouse drag doesn't fight the orbit. The handler lives on the
                 // camera GameObject (added by MapLibreMap.Initialize), not on
-                // _map — querying _map silently returned null and left the
+                // _map -- querying _map silently returned null and left the
                 // handler running.
                 var input = _map.MapCamera != null
                     ? _map.MapCamera.GetComponent<MapInputHandler>()

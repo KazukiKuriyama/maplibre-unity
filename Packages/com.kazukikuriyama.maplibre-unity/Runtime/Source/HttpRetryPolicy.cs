@@ -25,7 +25,7 @@ namespace MapLibre.Unity.Source
             if (request == null) return false;
             if (request.result == UnityWebRequest.Result.Success) return false;
 
-            // Network / connection errors are transient — retry.
+            // Network / connection errors are transient -- retry.
             if (request.result == UnityWebRequest.Result.ConnectionError) return true;
 
             // Protocol error: inspect HTTP status. 5xx, 408 (timeout), 429 (rate limit) are

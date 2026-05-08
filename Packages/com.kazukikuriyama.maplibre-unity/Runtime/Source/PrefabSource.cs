@@ -12,7 +12,7 @@ namespace MapLibre.Unity.Source
     /// <remarks>
     /// PrefabSource is a Unity-only extension and is intentionally not part of the
     /// MapLibre Style Spec. It does not implement <see cref="ISource"/> because
-    /// there are no tile / layer concepts involved — the source owns
+    /// there are no tile / layer concepts involved -- the source owns
     /// <see cref="PrefabInstance"/> records directly. Use it for placing 3D
     /// landmarks, vehicles, agents, or any prefab whose pivot should follow a
     /// real-world coordinate.
@@ -20,7 +20,7 @@ namespace MapLibre.Unity.Source
     /// <para>
     /// <b>ParticleSystem / VFX Graph</b>: any prefab with a
     /// <c>ParticleSystem</c> or <c>VisualEffect</c> component works without
-    /// extra setup — the GameObject is parented under the source's container
+    /// extra setup -- the GameObject is parented under the source's container
     /// and follows pan / zoom like any other prefab. Use
     /// <c>ParticleSystemSimulationSpace.Local</c> so particles stay anchored
     /// when the user pans. See the <c>ParticleSourceDemo</c> sample for the
@@ -81,7 +81,7 @@ namespace MapLibre.Unity.Source
 
             var instance = new PrefabInstance(id, go, lngLat, options);
             // Marker lets a Physics.Raycast hit walk back to the owning
-            // PrefabInstance via GetComponentInParent — needed for click /
+            // PrefabInstance via GetComponentInParent -- needed for click /
             // hover / drag dispatch from MapLibreMap.
             var marker = go.AddComponent<PrefabInstanceMarker>();
             marker.Instance = instance;
@@ -145,7 +145,7 @@ namespace MapLibre.Unity.Source
     {
         /// <summary>
         /// Height above the map ground plane, in Unity world units. Defaults to 0
-        /// so the prefab sits on Y=0. This is *not* metres of altitude — it is
+        /// so the prefab sits on Y=0. This is *not* metres of altitude -- it is
         /// applied directly in Unity-space and therefore scales with the map.
         /// </summary>
         public float HeightOffset;

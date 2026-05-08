@@ -50,7 +50,7 @@ namespace MapLibre.Unity.Samples
             sensojiMarker.SetLngLat(new LngLat(139.7966, 35.7148)).SetPopup(sensojiPopup);
             _map.AddMarker(sensojiMarker);
 
-            // 4. Draggable marker (orange) — starts at Tokyo Station
+            // 4. Draggable marker (orange) -- starts at Tokyo Station
             var draggableMarker = new Marker(new MarkerOptions
             {
                 Color = new Color(1f, 0.6f, 0f),
@@ -68,7 +68,7 @@ namespace MapLibre.Unity.Samples
             // 5. Click map to add marker
             _map.On(MapEventType.Click, OnMapClick);
 
-            Debug.Log("[MarkerPopupDemo] Loaded — click the map to add markers, click markers to toggle popups");
+            Debug.Log("[MarkerPopupDemo] Loaded -- click the map to add markers, click markers to toggle popups");
         }
 
         private void OnMapClick(MapEvent e)

@@ -24,7 +24,7 @@ namespace MapLibre.Unity
         /// Hard upper bound for pitch in degrees. Matches MapLibre GL JS' maximum
         /// settable maxPitch (85°) so the camera can tilt close to the horizon
         /// for 3D terrain views. LOD tile selection keeps the tile count bounded
-        /// at high pitch — without LOD the horizon would demand thousands of tiles.
+        /// at high pitch -- without LOD the horizon would demand thousands of tiles.
         /// </summary>
         public const float MaxPitchHardLimit = 85f;
 

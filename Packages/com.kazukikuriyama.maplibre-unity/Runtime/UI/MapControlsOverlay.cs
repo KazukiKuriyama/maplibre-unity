@@ -64,7 +64,7 @@ namespace MapLibre.Unity.UI
 
         private enum GeolocateState
         {
-            /// <summary>Default — no location request in flight.</summary>
+            /// <summary>Default -- no location request in flight.</summary>
             Idle,
             /// <summary>LocationService is initialising or waiting for a fix.</summary>
             Waiting,
@@ -99,7 +99,7 @@ namespace MapLibre.Unity.UI
             if (_attributionCounts.TryGetValue(plain, out int n))
             {
                 _attributionCounts[plain] = n + 1;
-                return; // Already visible — no row change.
+                return; // Already visible -- no row change.
             }
             _attributionCounts[plain] = 1;
             UpdateAttributionText();
@@ -108,7 +108,7 @@ namespace MapLibre.Unity.UI
         /// <summary>
         /// Remove one reference to <paramref name="attribution"/>. The string
         /// only disappears from the visible row when its reference count
-        /// reaches zero — useful when multiple sources share an attribution
+        /// reaches zero -- useful when multiple sources share an attribution
         /// (e.g. several OSM-derived tile sources).
         /// </summary>
         public void RemoveAttribution(string attribution)
@@ -177,7 +177,12 @@ namespace MapLibre.Unity.UI
                 root.Add(_zoomInButton);
                 buttonTop += buttonSize + buttonGap;
 
-                _zoomOutButton = BuildNavigationButton("zoom-out", "Zoom out", "−", () => _map?.ZoomOut());
+                // Use ASCII '-' (U+002D) rather than the typographically nicer
+                // '−' (U+2212 MINUS SIGN) -- the latter is missing from Unity's
+                // built-in LegacyRuntime.ttf, so WebGL Player builds (which
+                // fall back to that font) would render the zoom-out label
+                // blank.
+                _zoomOutButton = BuildNavigationButton("zoom-out", "Zoom out", "-", () => _map?.ZoomOut());
                 _zoomOutButton.style.top = buttonTop;
                 _zoomOutButton.style.right = 10;
                 root.Add(_zoomOutButton);
@@ -341,7 +346,7 @@ namespace MapLibre.Unity.UI
             _scaleLabel.style.color = Color.white;
             _scaleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _scaleLabel.style.unityFontDefinition = StyleKeyword.None;
-            var labelFont = Font.CreateDynamicFontFromOSFont("Arial", 10);
+            var labelFont = SystemFontFallback.Resolve("Arial", 10);
             _scaleLabel.style.unityFont = new StyleFont(labelFont);
             // Cheap text outline by stacking a black drop shadow.
             _scaleLabel.style.textShadow = new StyleTextShadow(new TextShadow
@@ -510,7 +515,7 @@ namespace MapLibre.Unity.UI
             label.style.fontSize = 18;
             label.style.color = new Color(0.15f, 0.15f, 0.15f, 1f);
             label.style.unityFontDefinition = StyleKeyword.None;
-            var font = Font.CreateDynamicFontFromOSFont("Arial", 18);
+            var font = SystemFontFallback.Resolve("Arial", 18);
             label.style.unityFont = new StyleFont(font);
             label.style.unityTextAlign = TextAnchor.MiddleCenter;
             btn.Add(label);
@@ -546,7 +551,7 @@ namespace MapLibre.Unity.UI
         }
 
         // Geolocate uses Unity's LocationService. The Input System package does not
-        // provide GPS access — LocationService remains the only path even on
+        // provide GPS access -- LocationService remains the only path even on
         // projects that disable the legacy Input class. Permission prompts are
         // handled by Unity itself based on the platform manifest (Info.plist /
         // AndroidManifest UsesPermission).
@@ -709,7 +714,7 @@ namespace MapLibre.Unity.UI
             _debugInfoLabel.style.borderBottomLeftRadius = 4;
             _debugInfoLabel.style.borderBottomRightRadius = 4;
             _debugInfoLabel.style.unityFontDefinition = StyleKeyword.None;
-            var font = Font.CreateDynamicFontFromOSFont("Arial", 10);
+            var font = SystemFontFallback.Resolve("Arial", 10);
             _debugInfoLabel.style.unityFont = new StyleFont(font);
             _debugInfoLabel.pickingMode = PickingMode.Ignore;
             _debugInfoLabel.text = "";
@@ -736,7 +741,7 @@ namespace MapLibre.Unity.UI
             _attributionLabel.style.unityTextAlign = TextAnchor.LowerRight;
             // Explicitly set a font so text renders even without a PanelSettings theme
             _attributionLabel.style.unityFontDefinition = StyleKeyword.None;
-            var font = Font.CreateDynamicFontFromOSFont("Arial", 10);
+            var font = SystemFontFallback.Resolve("Arial", 10);
             _attributionLabel.style.unityFont = new StyleFont(font);
             _attributionLabel.pickingMode = PickingMode.Ignore;
             _attributionLabel.text = "";

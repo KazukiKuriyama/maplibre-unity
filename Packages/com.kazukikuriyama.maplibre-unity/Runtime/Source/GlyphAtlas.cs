@@ -74,7 +74,7 @@ namespace MapLibre.Unity.Source
 
         /// <summary>
         /// Look up a previously-added glyph. Returns false when the
-        /// (fontstack, codepoint) pair has not been added yet — the caller can
+        /// (fontstack, codepoint) pair has not been added yet -- the caller can
         /// then queue a fetch for the appropriate glyph range.
         /// </summary>
         public bool TryGet(string fontstack, uint codepoint, out AtlasGlyph glyph)
@@ -90,7 +90,7 @@ namespace MapLibre.Unity.Source
 
         /// <summary>
         /// Pack the supplied glyph into the atlas. Re-adding the same
-        /// (fontstack, codepoint) is a no-op — first-write wins. Returns the
+        /// (fontstack, codepoint) is a no-op -- first-write wins. Returns the
         /// stored entry (whether new or pre-existing) so callers can use it
         /// immediately.
         /// </summary>
@@ -106,7 +106,7 @@ namespace MapLibre.Unity.Source
             int w = g.Width;
             int h = g.Height;
 
-            // Empty glyph (whitespace) — store metrics with a zero rect; the
+            // Empty glyph (whitespace) -- store metrics with a zero rect; the
             // mesh builder still needs Advance to lay text out correctly.
             if (g.Bitmap == null || g.Bitmap.Length == 0 || w == 0 || h == 0)
             {
@@ -174,7 +174,7 @@ namespace MapLibre.Unity.Source
                 if (newSize > MaxAtlasSize)
                 {
                     Debug.LogWarning(
-                        $"[GlyphAtlas] Atlas size capped at {MaxAtlasSize}px — " +
+                        $"[GlyphAtlas] Atlas size capped at {MaxAtlasSize}px -- " +
                         "glyph dropped. Consider trimming the fontstack range.");
                     return;
                 }

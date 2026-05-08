@@ -30,7 +30,7 @@ namespace MapLibre.Unity.Tests.EditMode
                 $"HomeScene.unity not found at '{HomeScenePath}'.");
 
             // Discover every shipping sample scene by walking the Samples/ tree.
-            // HomeScene itself is excluded — it loads the others.
+            // HomeScene itself is excluded -- it loads the others.
             var sampleScenes = Directory
                 .GetFiles(SamplesRoot, "*.unity", SearchOption.AllDirectories)
                 .Select(Path.GetFileNameWithoutExtension)

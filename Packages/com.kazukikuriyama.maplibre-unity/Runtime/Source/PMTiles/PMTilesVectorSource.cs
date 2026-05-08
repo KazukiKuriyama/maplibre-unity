@@ -26,7 +26,7 @@ namespace MapLibre.Unity.Source.PMTiles
             string attribution = null)
         {
             _archive = archive ?? throw new ArgumentNullException(nameof(archive));
-            // coroutineHost retained for back-compat — the archive runs on
+            // coroutineHost retained for back-compat -- the archive runs on
             // Awaitable now, so it's no longer required.
             _ = coroutineHost;
             Attribution = attribution;

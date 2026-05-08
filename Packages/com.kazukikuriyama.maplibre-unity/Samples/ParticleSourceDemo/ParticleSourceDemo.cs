@@ -6,7 +6,7 @@ namespace MapLibre.Unity.Samples
 {
     /// <summary>
     /// Demonstrates that <see cref="PrefabSource"/> handles ParticleSystem
-    /// prefabs natively — no extra source type needed. Spawns a smoke column
+    /// prefabs natively -- no extra source type needed. Spawns a smoke column
     /// at Tokyo Tower, a sparkle ring over Imperial Palace, and a brief
     /// burst on every map click.
     /// </summary>
@@ -21,7 +21,7 @@ namespace MapLibre.Unity.Samples
     /// Particle systems use <see cref="ParticleSystemSimulationSpace.Local"/>
     /// so the particles travel with the source GameObject as
     /// <see cref="PrefabSource"/> updates its world position every frame.
-    /// World-space simulation also works — particles will stay where they
+    /// World-space simulation also works -- particles will stay where they
     /// were emitted as the user pans the map.
     /// </para>
     /// </remarks>
@@ -56,7 +56,7 @@ namespace MapLibre.Unity.Samples
             ResolvePrefabs();
             _source = _map.AddPrefabSource(SourceId);
 
-            // 1. Tokyo Tower — slow grey smoke column.
+            // 1. Tokyo Tower -- slow grey smoke column.
             var smoke = _source.Add(_resolvedSmoke, new LngLat(139.7454, 35.6586),
                 new PrefabPlacementOptions
                 {
@@ -65,7 +65,7 @@ namespace MapLibre.Unity.Samples
                 }, instanceId: "tower-smoke");
             smoke.GameObject.SetActive(true);
 
-            // 2. Imperial Palace — golden sparkles puffing upward in a ring.
+            // 2. Imperial Palace -- golden sparkles puffing upward in a ring.
             var sparkle = _source.Add(_resolvedSparkle, new LngLat(139.7528, 35.6852),
                 new PrefabPlacementOptions
                 {
@@ -77,7 +77,7 @@ namespace MapLibre.Unity.Samples
             // 3. Click anywhere to drop a one-shot burst that auto-cleans up.
             _map.On(MapEventType.Click, OnMapClick);
 
-            Debug.Log("[ParticleSourceDemo] Ready — click the map to drop a one-shot burst");
+            Debug.Log("[ParticleSourceDemo] Ready -- click the map to drop a one-shot burst");
         }
 
         private void ResolvePrefabs()

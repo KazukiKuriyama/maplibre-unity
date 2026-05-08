@@ -105,7 +105,7 @@ namespace MapLibre.Unity.Rendering
 
             _meshRenderer.enabled = true;
 
-            // Cache Mercator corners — the image should drape over the mercator
+            // Cache Mercator corners -- the image should drape over the mercator
             // projection, so we interpolate in mercator space (not lat/lng).
             _cornerMerc = new[]
             {

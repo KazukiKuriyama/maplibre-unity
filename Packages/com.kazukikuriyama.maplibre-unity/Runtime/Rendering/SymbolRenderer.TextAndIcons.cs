@@ -12,7 +12,7 @@ namespace MapLibre.Unity.Rendering
     /// <summary>
     /// Text-field resolution, scale conversion, and the GameObject builders for
     /// SDF / TMP text and sprite icons. The mesh-building primitives that ship
-    /// with the partial don't track any per-tile state — they rely solely on
+    /// with the partial don't track any per-tile state -- they rely solely on
     /// the immutable fields owned by the main partial (font, sprite atlas,
     /// glyph source, icon material).
     /// </summary>
@@ -147,8 +147,8 @@ namespace MapLibre.Unity.Rendering
         /// MapLibre style spec allows a string array (e.g. ["Open Sans Regular",
         /// "Arial Unicode MS"]); we use the first entry as the SDF fontstack
         /// since on-demand range fetching only supports one stack at a time.
-        /// Falls back to "Open Sans Regular" — the conventional MapLibre
-        /// default — when the expression is missing or evaluates oddly.
+        /// Falls back to "Open Sans Regular" -- the conventional MapLibre
+        /// default -- when the expression is missing or evaluates oddly.
         /// </summary>
         private static string ResolveFontstack(SymbolLayoutProperties layout,
             EvaluationContext ctx)
@@ -173,7 +173,7 @@ namespace MapLibre.Unity.Rendering
         /// returned so the rest of the symbol-placement pipeline (collision
         /// detection, transform updates) doesn't have to special-case empty
         /// labels. Returns null only when the renderer prerequisites are
-        /// unmet — the caller falls back to TMP in that case.
+        /// unmet -- the caller falls back to TMP in that case.
         /// </summary>
         private GameObject CreateSdfTextObject(string text, string fontstack,
             Color color, float opacity, Color haloColor, float haloWidth)
@@ -239,7 +239,7 @@ namespace MapLibre.Unity.Rendering
                     color, opacity, haloColor, haloWidth);
                 if (sdfGo != null) return sdfGo;
                 // Fall through to TMP if SDF path fails (e.g. shader unset
-                // mid-frame). Defensive — should be rare in practice.
+                // mid-frame). Defensive -- should be rare in practice.
             }
 
             var go = new GameObject("Label");

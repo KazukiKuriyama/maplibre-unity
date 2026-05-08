@@ -23,14 +23,14 @@ namespace MapLibre.Unity.Source
     ///
     /// All public methods are safe to call from a single thread (typically the Unity main
     /// thread). Internal file I/O is wrapped in try/catch so a cache failure never breaks
-    /// the request — the source falls back to a normal HTTP fetch.
+    /// the request -- the source falls back to a normal HTTP fetch.
     /// </summary>
     public static class TileDiskCache
     {
         /// <summary>
         /// Master toggle. When false, all reads return miss and writes are no-ops.
         /// Defaults to true on platforms with a writable persistent data path,
-        /// and false on WebGL Player builds — Application.persistentDataPath is
+        /// and false on WebGL Player builds -- Application.persistentDataPath is
         /// IDBFS-backed there, so synchronous File.* calls block on IndexedDB
         /// sync and the cache hit rate isn't worth the freeze. WebGL users
         /// rely on the browser's HTTP cache instead. Override at runtime if

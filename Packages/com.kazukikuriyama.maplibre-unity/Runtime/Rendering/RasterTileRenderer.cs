@@ -105,7 +105,7 @@ namespace MapLibre.Unity.Rendering
             var st = new Vector4(invScale, invScale, offsetX * invScale,
                 1f - (offsetY + 1) * invScale);
 
-            // Parent fallback shows immediately at full opacity (no fade — it's a placeholder).
+            // Parent fallback shows immediately at full opacity (no fade -- it's a placeholder).
             ApplyTexture(go, parentTexture, opacity, st);
 
             _activeTileObjects[childTileId] = new ActiveTile
@@ -141,7 +141,7 @@ namespace MapLibre.Unity.Rendering
 
                 // ShowTile primes the property block with opacity=0 and relies on
                 // this loop to ramp it up to TargetOpacity over fadeDuration. We
-                // must keep writing opacity until it reaches TargetOpacity — if
+                // must keep writing opacity until it reaches TargetOpacity -- if
                 // we skipped the update once t already crossed 1 (e.g. when the
                 // first frame after ShowTile arrives more than fadeDuration
                 // later, common during startup stutters), the tile would stay

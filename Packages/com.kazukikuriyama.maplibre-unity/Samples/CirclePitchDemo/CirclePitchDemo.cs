@@ -11,10 +11,10 @@ namespace MapLibre.Unity.Samples
     /// <c>circle-pitch-scale</c>:
     ///
     /// <list type="bullet">
-    /// <item>map / map        — flat on the ground; size shrinks with pitch.</item>
-    /// <item>map / viewport   — flat on the ground; size stays in screen px.</item>
-    /// <item>viewport / map   — billboards facing camera; size shrinks with depth (spec default).</item>
-    /// <item>viewport / viewport — billboards facing camera; size stays in screen px.</item>
+    /// <item>map / map        -- flat on the ground; size shrinks with pitch.</item>
+    /// <item>map / viewport   -- flat on the ground; size stays in screen px.</item>
+    /// <item>viewport / map   -- billboards facing camera; size shrinks with depth (spec default).</item>
+    /// <item>viewport / viewport -- billboards facing camera; size stays in screen px.</item>
     /// </list>
     ///
     /// Four columns of GeoJSON points (one column per combination) all use

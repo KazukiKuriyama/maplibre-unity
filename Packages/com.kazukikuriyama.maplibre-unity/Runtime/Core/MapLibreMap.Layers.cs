@@ -21,7 +21,7 @@ namespace MapLibre.Unity
         /// <param name="layer">Layer definition to add.</param>
         /// <param name="triggerRefresh">When true (default), immediately refreshes tiles
         /// so the new layer renders. Set to false to skip the eager refresh when adding
-        /// many layers in a batch — a deferred refresh runs at the start of the next
+        /// many layers in a batch -- a deferred refresh runs at the start of the next
         /// Update() so the layers still appear without the caller having to remember a
         /// trailing <see cref="RefreshTiles"/> call. Calling <see cref="RefreshTiles"/>
         /// yourself before the next Update cancels the deferred refresh, so the explicit
@@ -65,7 +65,7 @@ namespace MapLibre.Unity
             FireEvent(new MapEvent(MapEventType.LayerAdd, this) { Id = layer.Id });
 
             // Existing active tiles won't re-trigger OnTileNeeded, so force a
-            // full tile cycle. Sources use LRU caches — no network re-fetches.
+            // full tile cycle. Sources use LRU caches -- no network re-fetches.
             // triggerRefresh: false defers to the safety-net in Update() so a
             // batch of AddLayer(false) calls still becomes visible next frame
             // even if the caller never issues an explicit RefreshTiles.
@@ -123,7 +123,7 @@ namespace MapLibre.Unity
         /// render order. Matches MapLibre GL JS <c>map.addLayer(customLayer, beforeId?)</c>.
         ///
         /// <para>
-        /// The map owns the slot — <c>beforeId</c>, <c>moveLayer</c>, and
+        /// The map owns the slot -- <c>beforeId</c>, <c>moveLayer</c>, and
         /// minzoom/maxzoom on the corresponding LayerDefinition all apply. The
         /// custom layer is responsible for its own rendering (typically by
         /// instantiating a Unity GameObject in <see cref="ICustomLayer.OnAdd"/>
@@ -189,7 +189,7 @@ namespace MapLibre.Unity
             Style.Layers.Insert(insertAt, layerDef);
             _customLayers[customLayer.Id] = customLayer;
 
-            // OnAdd may throw without leaving the map in a bad state — we keep
+            // OnAdd may throw without leaving the map in a bad state -- we keep
             // the registration so RemoveLayer still cleans up, and surface the
             // exception to the user.
             try { customLayer.OnAdd(this); }
@@ -239,7 +239,7 @@ namespace MapLibre.Unity
             Style.Layers.Insert(destIdx, layer);
 
             // Re-apply layer orders so renderQueue matches the new position.
-            // Use the layer's index in Style.Layers as its order — this matches
+            // Use the layer's index in Style.Layers as its order -- this matches
             // how MapRenderer.Initialize originally assigned orders.
             for (int i = 0; i < Style.Layers.Count; i++)
                 _mapRenderer.SetLayerOrder(Style.Layers[i].Id, i);
@@ -296,7 +296,7 @@ namespace MapLibre.Unity
             }
 
             // Vector / circle / heatmap / fillExtrusion / symbol: rebuild only
-            // this layer's GameObjects from the source's cached tile data — no
+            // this layer's GameObjects from the source's cached tile data -- no
             // network fetch and unrelated sources (raster basemap, other
             // vector layers) keep their loaded tiles instead of being expired
             // by TileManager.Clear and re-fetched on the next dispatch.
@@ -487,7 +487,7 @@ namespace MapLibre.Unity
         /// <summary>
         /// Rebuild a single layer's tiles in-place using the source's cached
         /// tile data (no network fetch). Useful after a property change that
-        /// only affects one layer — for example a feature-state hover update
+        /// only affects one layer -- for example a feature-state hover update
         /// or a SetPaintProperty call. Returns false (no-op) for raster /
         /// hillshade / terrain / image layers; the caller should fall back to
         /// <see cref="RefreshTiles"/> for those types.
@@ -501,7 +501,7 @@ namespace MapLibre.Unity
             if (layer == null) return false;
 
             // Tear down active GameObjects for the layer. Returns false for
-            // layer types we don't expose this on (raster/hillshade/terrain) —
+            // layer types we don't expose this on (raster/hillshade/terrain) --
             // those still flow through full RefreshTiles when needed.
             if (!_mapRenderer.InvalidateLayer(layerId)) return false;
 
@@ -513,7 +513,7 @@ namespace MapLibre.Unity
                 return true;
 
             // Re-show every active tile from the source cache. The cache is
-            // populated by the live tile loader, so this is essentially free —
+            // populated by the live tile loader, so this is essentially free --
             // no decode, no network. Tiles past the source maxzoom resolve to
             // the same parent tile the dispatch would pick.
             var centerMerc = CoordinateConversion.LngLatToMercator(State.Center);

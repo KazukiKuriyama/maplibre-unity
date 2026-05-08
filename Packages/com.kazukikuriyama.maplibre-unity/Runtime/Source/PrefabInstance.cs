@@ -13,7 +13,7 @@ namespace MapLibre.Unity.Source
     /// The transform is recomputed every frame from <see cref="LngLat"/>, the
     /// optional height offset, and the map's current state. Mutating the
     /// instantiated GameObject's local position directly is therefore not
-    /// persistent — adjust <see cref="LngLat"/> or <see cref="HeightOffset"/>
+    /// persistent -- adjust <see cref="LngLat"/> or <see cref="HeightOffset"/>
     /// instead, or assign a child object to absorb your transform tweaks.
     /// </remarks>
     public class PrefabInstance

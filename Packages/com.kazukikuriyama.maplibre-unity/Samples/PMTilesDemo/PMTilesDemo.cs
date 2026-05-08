@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MapLibre.Unity.Source.PMTiles;
 using MapLibre.Unity.Style;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,7 +11,7 @@ namespace MapLibre.Unity.Samples
     /// Loads a public PMTiles archive (Protomaps' Florence sample) over
     /// HTTP Range requests, wires it up as a vector source, and adds a
     /// minimal water + roads + buildings style on top. Demonstrates that
-    /// PMTiles works on any Unity build target including WebGL — the
+    /// PMTiles works on any Unity build target including WebGL -- the
     /// archive header + directory tree are streamed as the user pans, no
     /// SQLite or native plugin required.
     /// </summary>
@@ -18,7 +19,7 @@ namespace MapLibre.Unity.Samples
     {
         [SerializeField] private PanelSettings _panelSettings;
 
-        // Public Protomaps demo archive — ~6.5 MB and Range-enabled.
+        // Public Protomaps demo archive -- ~6.5 MB and Range-enabled.
         // Hosted on github.io which supports HTTP Range out of the box, so
         // we never download the whole file just to read the header. Replace
         // with your own .pmtiles URL or a StreamingAssets path to ship
@@ -26,7 +27,7 @@ namespace MapLibre.Unity.Samples
         private const string ArchiveUrl =
             "https://pmtiles.io/protomaps(vector)ODbL_firenze.pmtiles";
 
-        // Florence centre — matches the bundled archive's footprint.
+        // Florence centre -- matches the bundled archive's footprint.
         private static readonly LngLat FlorenceCenter = new(11.255, 43.770);
 
         private MapLibreMap _map;
@@ -43,7 +44,7 @@ namespace MapLibre.Unity.Samples
             }
             await _map.LoadAsync();
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUi();
 
             _map.JumpTo(new MapLibre.Unity.CameraControl.JumpToOptions
@@ -71,7 +72,7 @@ namespace MapLibre.Unity.Samples
             try
             {
                 await archive.OpenAsync();
-                SetStatus($"Header read — type={archive.Header.TileType}, " +
+                SetStatus($"Header read -- type={archive.Header.TileType}, " +
                           $"zoom {archive.Header.MinZoom}-{archive.Header.MaxZoom}");
                 AttachArchive(archive);
             }
@@ -86,10 +87,10 @@ namespace MapLibre.Unity.Samples
         {
             // Vector PMTiles → wire up via PMTilesVectorSource so the
             // existing PBF parser / expression / paint pipeline picks it up.
-            // Raster archives use PMTilesRasterSource — same lifecycle.
+            // Raster archives use PMTilesRasterSource -- same lifecycle.
             if (archive.Header.TileType != PMTilesType.Mvt)
             {
-                SetStatus($"Archive is {archive.Header.TileType}, not MVT — " +
+                SetStatus($"Archive is {archive.Header.TileType}, not MVT -- " +
                           "swap PMTilesVectorSource for PMTilesRasterSource", error: true);
                 return;
             }
@@ -99,7 +100,7 @@ namespace MapLibre.Unity.Samples
             // Layers expressed against the Protomaps schema. Florence has
             // "water", "roads", and "buildings" source layers; we render
             // those on top of the OSM raster basemap from the bootstrap
-            // style. (No extra background layer here — the style already
+            // style. (No extra background layer here -- the style already
             // ships one.)
             _map.AddLayer(new LayerDefinition
             {
@@ -134,7 +135,7 @@ namespace MapLibre.Unity.Samples
                     { "fill-opacity", 0.85f },
                 },
             });
-            SetStatus("Tiles streaming over HTTP Range — pan to load more.");
+            SetStatus("Tiles streaming over HTTP Range -- pan to load more.");
         }
 
         // ── UI ──

@@ -22,7 +22,7 @@ namespace MapLibre.Unity.Editor
 
         static AlwaysIncludedShadersRegistration()
         {
-            // Defer to delayCall so the AssetDatabase is fully ready — on the
+            // Defer to delayCall so the AssetDatabase is fully ready -- on the
             // first Editor open after a fresh package install, FindAssets
             // returns 0 hits if called from the static ctor directly.
             EditorApplication.delayCall += Register;

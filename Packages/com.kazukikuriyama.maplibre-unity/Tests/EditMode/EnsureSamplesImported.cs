@@ -13,7 +13,7 @@ namespace MapLibre.Unity.Tests.EditMode
     /// PlayMode smoke test can resolve them by name.
     ///
     /// This file lives under Tests/ so the release workflow's
-    /// <c>rm -rf Tests</c> step strips it from the UPM tarball — end users
+    /// <c>rm -rf Tests</c> step strips it from the UPM tarball -- end users
     /// installing the package via UPM never see this code. They are
     /// expected to add scenes to Build Settings themselves the first
     /// time they want to launch HomeScene.

@@ -174,7 +174,7 @@ namespace MapLibre.Unity.Source
             var onComplete = req.OnComplete;
             var onError = req.OnError;
             // Guard against the loader invoking both callbacks (or invoking one
-            // twice) — release the request slot exactly once either way.
+            // twice) -- release the request slot exactly once either way.
             bool finished = false;
 
             try
@@ -209,7 +209,7 @@ namespace MapLibre.Unity.Source
             }
             catch (Exception e)
             {
-                // Synchronous throw from the user loader — release the slot and
+                // Synchronous throw from the user loader -- release the slot and
                 // surface the error so the renderer doesn't deadlock.
                 if (!finished)
                 {

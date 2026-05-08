@@ -47,7 +47,7 @@ namespace MapLibre.Unity.Rendering
             if (collider != null)
                 Object.Destroy(collider);
 
-            // Initial size — will be updated dynamically based on camera far clip plane
+            // Initial size -- will be updated dynamically based on camera far clip plane
             UpdateSize(1f, 1f);
         }
 
@@ -59,7 +59,7 @@ namespace MapLibre.Unity.Rendering
             _backgroundMaterial.SetColor(ColorPropertyId, c);
 
             // When the layer falls back to a solid color (no pattern), restore the
-            // solid material — UpdatePattern may have swapped it earlier.
+            // solid material -- UpdatePattern may have swapped it earlier.
             if (string.IsNullOrEmpty(_activePattern) && _backgroundPlane != null)
             {
                 var renderer = _backgroundPlane.GetComponent<MeshRenderer>();

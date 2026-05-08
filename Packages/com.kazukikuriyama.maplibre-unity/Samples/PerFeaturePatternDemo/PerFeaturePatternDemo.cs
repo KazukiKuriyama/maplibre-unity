@@ -12,7 +12,7 @@ namespace MapLibre.Unity.Samples
     /// <c>["match", ["get", "class"], ...]</c> to pick a different sprite per
     /// feature. The patterns themselves are generated procedurally at runtime
     /// (red dots / blue stripes / green crosshatch) and registered via
-    /// <see cref="MapLibreMap.AddImage"/> so the demo is self-contained — no
+    /// <see cref="MapLibreMap.AddImage"/> so the demo is self-contained -- no
     /// external sprite endpoint required.
     /// Attach to the same GameObject as MapLibreMap.
     /// </summary>
@@ -149,7 +149,7 @@ namespace MapLibre.Unity.Samples
         private void AddLayer()
         {
             // The single layer drives three different patterns from one
-            // expression — proof that grouping is per-feature rather than
+            // expression -- proof that grouping is per-feature rather than
             // uniform per layer (the previous behaviour).
             _map.AddLayer(new LayerDefinition
             {

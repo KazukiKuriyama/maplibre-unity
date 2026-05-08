@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 namespace MapLibre.Unity
 {
     /// <summary>
-    /// Style mutation surface — SetStyle / SetStyleJson, sprite atlas + glyph
+    /// Style mutation surface -- SetStyle / SetStyleJson, sprite atlas + glyph
     /// management, runtime image registry, light / sky / terrain mutators, and
     /// the marker / popup composition layer. The bulk of the work happens in
     /// <see cref="ApplyStyleJsonInternalAsync"/>, which tears down sources /
@@ -224,7 +224,7 @@ namespace MapLibre.Unity
                 _symbolFontFallbacks, _fillExtrusionPatternShader, _skyShader, _lineGradientShader,
                 ResolveSourceLineMetrics, _backgroundPatternShader);
             _mapRenderer.SetFeatureStateStore(this);
-            // Wire SDF text path. The shader is loaded lazily — bundles that
+            // Wire SDF text path. The shader is loaded lazily -- bundles that
             // don't include MapLibreSdfText.shader simply fall back to TMP.
             _mapRenderer.SetGlyphSource(_glyphSource, Shader.Find("MapLibre/SdfText"));
 
@@ -355,7 +355,7 @@ namespace MapLibre.Unity
 
         // SDF labels render with a null mesh on first dispatch when glyph PBFs
         // are still in flight. The atlas is populated asynchronously, so we
-        // need a hook that re-fires tile dispatch once new glyphs land —
+        // need a hook that re-fires tile dispatch once new glyphs land --
         // otherwise SdfLabel(partial) GameObjects stay empty forever.
         private void AttachGlyphRangeListener()
         {
@@ -412,7 +412,7 @@ namespace MapLibre.Unity
         /// <summary>
         /// Asynchronously fetch an image from a URL and pass it to <paramref name="onSuccess"/>
         /// as a <see cref="Texture2D"/>. Matches map.loadImage(url, callback) in MapLibre GL JS.
-        /// The texture ownership transfers to the caller — pair with AddImage(id, texture)
+        /// The texture ownership transfers to the caller -- pair with AddImage(id, texture)
         /// to register it for use in icon-image, or destroy it when finished.
         ///
         /// The request is routed through <see cref="TransformRequest"/> so auth headers and
@@ -654,7 +654,7 @@ namespace MapLibre.Unity
         public LightDefinition GetLight() => Style?.Light;
 
         /// <summary>
-        /// Apply a new light definition. Affects fill-extrusion shading immediately —
+        /// Apply a new light definition. Affects fill-extrusion shading immediately --
         /// no tile reload is required. Pass null to revert to defaults (white, 0.5
         /// intensity, position [1.15, 210, 30]).
         /// Matches map.setLight() in MapLibre GL JS.
@@ -675,7 +675,7 @@ namespace MapLibre.Unity
 
         /// <summary>
         /// Apply a new sky definition. The screen-space sky gradient updates
-        /// immediately — tile reload is not required. Pass null to hide the sky
+        /// immediately -- tile reload is not required. Pass null to hide the sky
         /// (Unity's camera clear color takes over).
         /// Matches map.setSky() in MapLibre GL JS.
         /// </summary>
@@ -702,14 +702,14 @@ namespace MapLibre.Unity
 
         /// <summary>
         /// Add a marker to the map. Convenience wrapper for marker.addTo(map) in MapLibre GL JS.
-        /// Logs a warning and no-ops if the map has not finished initializing yet —
+        /// Logs a warning and no-ops if the map has not finished initializing yet --
         /// MarkerManager depends on the PanelSettings stand-up done during Start.
         /// </summary>
         public void AddMarker(Marker marker)
         {
             if (!_isInitialized)
             {
-                Debug.LogWarning("[MapLibreMap] AddMarker: map not initialized yet — await LoadAsync() first.");
+                Debug.LogWarning("[MapLibreMap] AddMarker: map not initialized yet -- await LoadAsync() first.");
                 return;
             }
             marker.AddTo(this);
@@ -718,7 +718,7 @@ namespace MapLibre.Unity
 
         /// <summary>
         /// Remove a marker from the map. No-op when the map has not been
-        /// initialized — there is nothing to remove yet.
+        /// initialized -- there is nothing to remove yet.
         /// </summary>
         public void RemoveMarker(Marker marker)
         {
@@ -734,7 +734,7 @@ namespace MapLibre.Unity
         {
             if (!_isInitialized)
             {
-                Debug.LogWarning("[MapLibreMap] AddPopup: map not initialized yet — await LoadAsync() first.");
+                Debug.LogWarning("[MapLibreMap] AddPopup: map not initialized yet -- await LoadAsync() first.");
                 return;
             }
             popup.AddTo(this);

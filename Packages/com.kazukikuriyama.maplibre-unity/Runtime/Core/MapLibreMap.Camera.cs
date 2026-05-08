@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MapLibre.Unity
 {
     /// <summary>
-    /// Camera surface — Project / Unproject helpers, JumpTo / EaseTo / FlyTo /
+    /// Camera surface -- Project / Unproject helpers, JumpTo / EaseTo / FlyTo /
     /// FitBounds, free-camera bridge, zoom / pitch / bearing setters, and
     /// state predicates (IsMoving, IsZooming, ...).
     /// Animations route through <see cref="MapLibre.Unity.CameraControl.MapAnimator"/>;
@@ -99,7 +99,7 @@ namespace MapLibre.Unity
         // === Camera shortcut API (matches MapLibre GL JS) ===
         // JumpTo/setCenter/setZoom/setBearing/setPitch are non-animated and change
         // state synchronously. Any in-flight animation is cancelled first so the
-        // new state sticks — otherwise the animation would overwrite it next frame.
+        // new state sticks -- otherwise the animation would overwrite it next frame.
 
         /// <summary>
         /// Instantly move the camera (no animation). Only non-null options are applied.
@@ -239,7 +239,7 @@ namespace MapLibre.Unity
         /// pitch) so the map continues to load tiles for the area you're looking at.
         ///
         /// Once called, the map's automatic camera positioning (driven by SetCenter,
-        /// SetZoom, EaseTo, FlyTo etc.) is suspended — Cinemachine or your FPS
+        /// SetZoom, EaseTo, FlyTo etc.) is suspended -- Cinemachine or your FPS
         /// controller now owns the camera transform. Call
         /// <see cref="ResumeMapDrivenCamera"/> to switch back to map-driven mode.
         ///
@@ -255,7 +255,7 @@ namespace MapLibre.Unity
                 _mapCamera.transform.localRotation = options.Rotation.Value;
 
             _cameraController.ExternallyDriven = true;
-            // Cancel any in-flight tween — letting an animator continue to push
+            // Cancel any in-flight tween -- letting an animator continue to push
             // its own MapState target while the external rig drives the
             // transform produces zoom / center oscillation between the two.
             Animator?.CancelAnimation();
@@ -330,7 +330,7 @@ namespace MapLibre.Unity
 
             // OnMapStateChanged routes back to MapCamera.UpdateFromMapState which
             // early-returns under ExternallyDriven, so the clip plane bookkeeping
-            // there is skipped. Recompute manually from the actual transform —
+            // there is skipped. Recompute manually from the actual transform --
             // otherwise an orbit whose radius exceeds the previous far-plane
             // (set when the map drove the camera) clips the entire scene.
             _cameraController.AdjustClipPlanes(Mathf.Max(pos.y, 0.0001f), State.Pitch);
@@ -343,7 +343,7 @@ namespace MapLibre.Unity
         public void RefreshTiles()
         {
             if (!_isInitialized) return;
-            // Caller is doing the refresh themselves — cancel the deferred
+            // Caller is doing the refresh themselves -- cancel the deferred
             // safety-net set by AddLayer(triggerRefresh:false) so the explicit
             // batch pattern (AddLayer false × N + RefreshTiles) still results
             // in exactly one refresh.

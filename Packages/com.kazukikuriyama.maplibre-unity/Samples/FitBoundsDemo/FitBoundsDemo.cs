@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using MapLibre.Unity.CameraControl;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -53,7 +54,7 @@ namespace MapLibre.Unity.Samples
             while (!_map.IsInitialized)
                 yield return null;
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUI();
         }
 
@@ -169,31 +170,31 @@ namespace MapLibre.Unity.Samples
         private void OnFitJapan()
         {
             _map.FitBounds(JapanBounds, new FitBoundsOptions { Duration = 2000f });
-            Log("fitBounds(Japan) — SW(129.5,31.0) NE(145.8,45.5)");
+            Log("fitBounds(Japan) -- SW(129.5,31.0) NE(145.8,45.5)");
         }
 
         private void OnFitTokyo()
         {
             _map.FitBounds(TokyoBounds);
-            Log("fitBounds(Tokyo) — SW(139.60,35.60) NE(139.85,35.78)");
+            Log("fitBounds(Tokyo) -- SW(139.60,35.60) NE(139.85,35.78)");
         }
 
         private void OnFitKansai()
         {
             _map.FitBounds(KansaiBounds);
-            Log("fitBounds(Kansai) — SW(135.10,34.55) NE(135.85,35.10)");
+            Log("fitBounds(Kansai) -- SW(135.10,34.55) NE(135.85,35.10)");
         }
 
         private void OnFitHokkaido()
         {
             _map.FitBounds(HokkaidoBounds, new FitBoundsOptions { Duration = 2000f });
-            Log("fitBounds(Hokkaido) — SW(139.3,41.3) NE(145.8,45.5)");
+            Log("fitBounds(Hokkaido) -- SW(139.3,41.3) NE(145.8,45.5)");
         }
 
         private void OnFitOkinawa()
         {
             _map.FitBounds(OkinawaBounds, new FitBoundsOptions { Duration = 2000f });
-            Log("fitBounds(Okinawa) — SW(127.5,26.0) NE(128.3,26.9)");
+            Log("fitBounds(Okinawa) -- SW(127.5,26.0) NE(128.3,26.9)");
         }
 
         // --- Options handlers ---

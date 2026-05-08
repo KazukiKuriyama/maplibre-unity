@@ -15,7 +15,7 @@ namespace MapLibre.Unity.Expressions
     internal static class ColorSpaceConversion
     {
         // sRGB <-> linear RGB. Using the IEC 61966-2-1 piecewise transfer
-        // function — the same one Unity itself applies in linear color space
+        // function -- the same one Unity itself applies in linear color space
         // projects, but we run it explicitly because Color values from style
         // JSON are sRGB regardless of the project's color space setting.
 

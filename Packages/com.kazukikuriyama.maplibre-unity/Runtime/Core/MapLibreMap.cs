@@ -21,15 +21,15 @@ namespace MapLibre.Unity
     /// <para>
     /// Implementation is split across partial files for navigability:
     /// <list type="bullet">
-    /// <item><c>MapLibreMap.cs</c> — fields, lifecycle, tile event plumbing.</item>
-    /// <item><c>MapLibreMap.Async.cs</c> — Awaitable counterparts of the public API.</item>
-    /// <item><c>MapLibreMap.Events.cs</c> — On / Off / Once + internal Fire helpers.</item>
-    /// <item><c>MapLibreMap.Input.cs</c> — pointer / touch / resize handling.</item>
-    /// <item><c>MapLibreMap.Sources.cs</c> — AddSource / RemoveSource / GetSource.</item>
-    /// <item><c>MapLibreMap.Layers.cs</c> — AddLayer / RemoveLayer / property getters and setters.</item>
-    /// <item><c>MapLibreMap.Style.cs</c> — SetStyle, sprite / glyph / image / light / sky / terrain.</item>
-    /// <item><c>MapLibreMap.Camera.cs</c> — Project / Unproject, EaseTo / FlyTo, free-camera bridge.</item>
-    /// <item><c>MapLibreMap.FeatureState.cs</c> — feature-state CRUD + IFeatureStateStore.</item>
+    /// <item><c>MapLibreMap.cs</c> -- fields, lifecycle, tile event plumbing.</item>
+    /// <item><c>MapLibreMap.Async.cs</c> -- Awaitable counterparts of the public API.</item>
+    /// <item><c>MapLibreMap.Events.cs</c> -- On / Off / Once + internal Fire helpers.</item>
+    /// <item><c>MapLibreMap.Input.cs</c> -- pointer / touch / resize handling.</item>
+    /// <item><c>MapLibreMap.Sources.cs</c> -- AddSource / RemoveSource / GetSource.</item>
+    /// <item><c>MapLibreMap.Layers.cs</c> -- AddLayer / RemoveLayer / property getters and setters.</item>
+    /// <item><c>MapLibreMap.Style.cs</c> -- SetStyle, sprite / glyph / image / light / sky / terrain.</item>
+    /// <item><c>MapLibreMap.Camera.cs</c> -- Project / Unproject, EaseTo / FlyTo, free-camera bridge.</item>
+    /// <item><c>MapLibreMap.FeatureState.cs</c> -- feature-state CRUD + IFeatureStateStore.</item>
     /// </list>
     /// </para>
     /// </summary>
@@ -66,7 +66,7 @@ namespace MapLibre.Unity
         // Built-in layer shaders are loaded via Shader.Find() in InitializeAsync().
         // Build inclusion is guaranteed by ProjectSettings/GraphicsSettings.asset
         // (m_AlwaysIncludedShaders); GraphicsSettingsShaderTests catches drift.
-        // Not exposed in Inspector — matches MapLibre GL JS where rendering
+        // Not exposed in Inspector -- matches MapLibre GL JS where rendering
         // primitives are internal. Custom rendering goes through ICustomLayer.
         private Shader _rasterTileShader;
         private Shader _backgroundShader;
@@ -131,7 +131,7 @@ namespace MapLibre.Unity
         private SpriteAtlas _spriteAtlas;
         // Lazily created when style.glyphs is non-null. Holds the on-demand
         // glyph atlas backing self-rendered SDF text (an alternative to the
-        // TMP path). null when the style has no glyphs URL — TMP remains the
+        // TMP path). null when the style has no glyphs URL -- TMP remains the
         // only text path in that case.
         private GlyphSource _glyphSource;
 
@@ -273,7 +273,7 @@ namespace MapLibre.Unity
                 _spriteAtlas = new SpriteAtlas(null, null);
 
             // 1c. Stand up the glyph source if the style declared a glyphs URL.
-            // We don't pre-fetch any range — the SymbolRenderer (or a custom
+            // We don't pre-fetch any range -- the SymbolRenderer (or a custom
             // layer) requests ranges as text is rendered.
             if (!string.IsNullOrEmpty(Style.Glyphs))
             {
@@ -421,7 +421,7 @@ namespace MapLibre.Unity
                 _symbolFontFallbacks, _fillExtrusionPatternShader, _skyShader, _lineGradientShader,
                 ResolveSourceLineMetrics, _backgroundPatternShader);
             _mapRenderer.SetFeatureStateStore(this);
-            // Wire SDF text path. The shader is loaded lazily — bundles that
+            // Wire SDF text path. The shader is loaded lazily -- bundles that
             // don't include MapLibreSdfText.shader simply fall back to TMP.
             _mapRenderer.SetGlyphSource(_glyphSource, Shader.Find("MapLibre/SdfText"));
 
@@ -469,7 +469,7 @@ namespace MapLibre.Unity
                 _inputHandler.Initialize(State, _mapCamera);
                 // Compose the camera-suppression check so a draggable prefab
                 // under the cursor blocks map pan / zoom the same way a UITK
-                // overlay does. Non-draggable prefabs do not block — clicks
+                // overlay does. Non-draggable prefabs do not block -- clicks
                 // simply route to the prefab and the map's own click event is
                 // suppressed for that frame inside HandlePointerEvents.
                 _inputHandler.SetPointerOverUICheck(pos =>
@@ -507,7 +507,7 @@ namespace MapLibre.Unity
             // Try to find the built-in UnityDefaultRuntimeTheme via every path
             // Unity has shipped it under across versions; if all of them fail,
             // generate a minimal valid ThemeStyleSheet (empty but with imports)
-            // — leaving themeStyleSheet null causes Unity to log a warning each
+            // -- leaving themeStyleSheet null causes Unity to log a warning each
             // frame the panel ticks.
             if (_panelSettings == null)
             {
@@ -538,7 +538,7 @@ namespace MapLibre.Unity
         }
 
         // Resolve UnityDefaultRuntimeTheme via the same delegate that Unity's
-        // own UIDocument inspector uses to populate the default — exposed
+        // own UIDocument inspector uses to populate the default -- exposed
         // through reflection because PanelSettings doesn't surface it
         // publicly. Returns null only if the API moves; the caller is
         // expected to handle that by setting `disableNoThemeWarning = true`
@@ -789,7 +789,7 @@ namespace MapLibre.Unity
                             {
                                 _tileManager.SetTileState(capturedTileId, TileState.Error);
                                 // Parse timeouts come from VectorTileSource cancelling a slow
-                                // background parse — transient under load, not a real fault.
+                                // background parse -- transient under load, not a real fault.
                                 bool isTransient = error != null && error.StartsWith("Parse timeout");
                                 FireError($"Vector tile {id} failed: {error}", capturedSourceId,
                                     isTransient: isTransient);
@@ -954,7 +954,7 @@ namespace MapLibre.Unity
                 FireEvent(MapEventType.Remove);
 
             // ICustomLayer owns its own GameObjects/assets. Notify it now so it
-            // can release them — Unity is about to tear down the map.
+            // can release them -- Unity is about to tear down the map.
             foreach (var custom in _customLayers.Values)
             {
                 try { custom.OnRemove(this); }

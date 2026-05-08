@@ -10,7 +10,7 @@ namespace MapLibre.Unity.Source.PMTiles
     /// Reads a PMTiles archive over HTTP Range requests or from a local file.
     /// The header (127 bytes) and root directory are fetched up front and
     /// kept in memory; leaf directories are loaded lazily and cached.
-    /// One archive instance is shared across all renderers — the wrapping
+    /// One archive instance is shared across all renderers -- the wrapping
     /// <see cref="PMTilesRasterSource"/> / <see cref="PMTilesVectorSource"/>
     /// just funnels per-tile lookups through here.
     /// </summary>
@@ -87,7 +87,7 @@ namespace MapLibre.Unity.Source.PMTiles
 
         /// <summary>
         /// Look up a tile by (z, x, y). Returns the raw bytes (still in the
-        /// archive's tile compression — the source wrappers handle gzip
+        /// archive's tile compression -- the source wrappers handle gzip
         /// unwrapping for vector tiles, and Texture2D.LoadImage handles
         /// PNG / JPEG natively). Returns <c>null</c> when the tile id has
         /// no entry in the archive (normal for sparse archives). Throws
@@ -120,12 +120,12 @@ namespace MapLibre.Unity.Source.PMTiles
 
                 if (!entry.IsLeaf)
                 {
-                    // Tile entry — fetch the bytes from the tile-data section.
+                    // Tile entry -- fetch the bytes from the tile-data section.
                     ulong absOff = _header.TileDataOffset + entry.Offset;
                     return await ReadRangeAsync(absOff, (int)entry.Length);
                 }
 
-                // Leaf pointer — fetch the leaf directory, then re-search.
+                // Leaf pointer -- fetch the leaf directory, then re-search.
                 if (!_leafCache.TryGetValue((entry.Offset, entry.Length), out var leaf))
                 {
                     ulong absOff = _header.LeafDirsOffset + entry.Offset;
@@ -143,7 +143,7 @@ namespace MapLibre.Unity.Source.PMTiles
                 }
                 dir = leaf;
             }
-            throw new PMTilesException("PMTiles leaf depth exceeded — archive may be malformed");
+            throw new PMTilesException("PMTiles leaf depth exceeded -- archive may be malformed");
         }
 
         // === Range-read primitive ===
@@ -187,7 +187,7 @@ namespace MapLibre.Unity.Source.PMTiles
             // outside of 200/206 as failure. The timeout guards against
             // unreachable hosts (DNS failure, hung connection): without it
             // SendWebRequest sits forever and freezes the calling scene's
-            // boot sequence — visible as an apparent Editor hang.
+            // boot sequence -- visible as an apparent Editor hang.
             using var request = UnityWebRequest.Get(_url);
             // Servers that honour Range respond with 206 + the requested
             // slice. Servers that don't (some object stores, some static
@@ -216,7 +216,7 @@ namespace MapLibre.Unity.Source.PMTiles
                     $"PMTiles HTTP {request.responseCode}: empty body " +
                     $"(Content-Length={request.GetResponseHeader("Content-Length")})");
             }
-            // Status 200 means the server ignored Range — slice the prefix
+            // Status 200 means the server ignored Range -- slice the prefix
             // ourselves so callers always get exactly `length` bytes from
             // `offset`. Status 206 means the server already returned just
             // the slice we asked for.

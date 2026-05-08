@@ -13,7 +13,7 @@ namespace MapLibre.Unity.Tests.EditMode
     /// player builds unless they are referenced by a Material in an included
     /// scene OR registered in Graphics Settings &gt; Always Included Shaders.
     /// MapLibre Unity uses the latter, so a missing entry only surfaces in
-    /// release builds — this test catches it at CI time.
+    /// release builds -- this test catches it at CI time.
     /// </summary>
     public class GraphicsSettingsShaderTests
     {

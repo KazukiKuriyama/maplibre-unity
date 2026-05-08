@@ -29,7 +29,7 @@ namespace MapLibre.Unity.Source
         private readonly GlyphAtlas _atlas;
 
         // (fontstack, rangeStart) → state. We do not retry failed requests
-        // automatically — the user can call EnsureRange again after fixing
+        // automatically -- the user can call EnsureRange again after fixing
         // the underlying issue.
         private enum RangeState { Pending, Loaded, Failed }
         private readonly Dictionary<(string fontstack, int rangeStart), RangeState> _ranges = new();
@@ -160,7 +160,7 @@ namespace MapLibre.Unity.Source
             {
                 // Use Uri.EscapeDataString rather than UnityWebRequest.EscapeURL.
                 // EscapeURL is form-encoding (space → '+'), which is wrong for
-                // URL path components — MapLibre's glyph endpoint expects
+                // URL path components -- MapLibre's glyph endpoint expects
                 // %20 (e.g. demotiles 404s on "Noto+Sans+Regular" but 200s on
                 // "Noto%20Sans%20Regular").
                 string url = _urlTemplate
@@ -197,7 +197,7 @@ namespace MapLibre.Unity.Source
                 }
 
                 // Persist the freshly-fetched bytes for next time. Errors
-                // here are non-fatal — we already have the data in memory.
+                // here are non-fatal -- we already have the data in memory.
                 if (cachePath != null)
                 {
                     try { File.WriteAllBytes(cachePath, data); }
@@ -220,7 +220,7 @@ namespace MapLibre.Unity.Source
             catch (Exception e)
             {
                 // `url` is no longer in scope here when the bytes came from
-                // disk cache — log the (fontstack, range) pair instead.
+                // disk cache -- log the (fontstack, range) pair instead.
                 Debug.LogWarning(
                     $"[GlyphSource] Parse failed for {fontstack} {rangeStart}-{rangeEnd}: {e.Message}");
                 _ranges[(fontstack, rangeStart)] = RangeState.Failed;
@@ -232,7 +232,7 @@ namespace MapLibre.Unity.Source
             // style asked for (servers normalise / canonicalise), so keying
             // by the request makes SdfTextMeshBuilder.TryGet(fontstack, cp)
             // succeed with the same name the style used. Multi-stack PBFs
-            // (rare — comma-joined URL templates) merge their glyphs together
+            // (rare -- comma-joined URL templates) merge their glyphs together
             // under the same key, matching MapLibre GL JS behaviour where the
             // first stack to provide a codepoint wins.
             foreach (var stack in parsed.Stacks)
@@ -255,7 +255,7 @@ namespace MapLibre.Unity.Source
 
         /// <summary>
         /// Delete every cached glyph PBF file under
-        /// Application.persistentDataPath. Use sparingly — this removes the
+        /// Application.persistentDataPath. Use sparingly -- this removes the
         /// disk-cache benefit for the next session. The in-memory atlas is
         /// not touched.
         /// </summary>

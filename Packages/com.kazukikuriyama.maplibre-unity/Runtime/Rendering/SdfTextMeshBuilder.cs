@@ -24,7 +24,7 @@ namespace MapLibre.Unity.Rendering
         // (TmpFontSize), so we pre-scale the SDF mesh by 36/24 = 1.5 to make
         // both pipelines hit the same on-screen size for a given text-size.
         // Without this, SDF labels render ~33% smaller than the equivalent TMP
-        // labels and end up sub-pixel on typical map zooms — the "dots and
+        // labels and end up sub-pixel on typical map zooms -- the "dots and
         // stains" appearance that's reported when a glyphs URL is wired up.
         private const float SdfCellPx = 24f;
         private const float TmpEmPx = 36f;
@@ -77,7 +77,7 @@ namespace MapLibre.Unity.Rendering
         /// Build a mesh with one quad per glyph in <paramref name="text"/>.
         /// Returns null when <paramref name="text"/> is empty or every glyph is
         /// missing from the atlas. The boolean output flags whether any
-        /// codepoint was missing — the caller can then trigger a glyph fetch
+        /// codepoint was missing -- the caller can then trigger a glyph fetch
         /// and rebuild later.
         /// </summary>
         public static Mesh Build(string text, string fontstack, GlyphAtlas atlas,
@@ -101,7 +101,7 @@ namespace MapLibre.Unity.Rendering
                 }
                 if (g.Width <= 0 || g.Height <= 0)
                 {
-                    // Whitespace / non-printing — advance only.
+                    // Whitespace / non-printing -- advance only.
                     pen += g.Advance;
                     continue;
                 }
@@ -125,7 +125,7 @@ namespace MapLibre.Unity.Rendering
                 verts.Add(new Vector3(qLeft,  qTop,    0));
 
                 // Atlas Y grows downward (Texture2D.SetPixels32(0,0,...) puts
-                // pixel (0,0) at the bottom-left for SetPixels — but our
+                // pixel (0,0) at the bottom-left for SetPixels -- but our
                 // shelf-packing uses raw integer coordinates that match the
                 // texture layout used by Texture2D itself). We treat
                 // UVRect.y as the "top of the bitmap in atlas space" and pair

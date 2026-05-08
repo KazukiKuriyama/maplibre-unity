@@ -7,7 +7,7 @@ namespace MapLibre.Unity.Rendering
     /// <summary>
     /// Builds an SDF text mesh whose glyph quads follow a 2D world-space
     /// path. Used by <c>SymbolRenderer</c> for <c>symbol-placement: "line"</c>
-    /// (and "line-center") when a glyph URL is configured — the TextMeshPro
+    /// (and "line-center") when a glyph URL is configured -- the TextMeshPro
     /// path remains the fallback for projects without one.
     ///
     /// <para>
@@ -16,7 +16,7 @@ namespace MapLibre.Unity.Rendering
     /// Camera / pitch / bearing transforms are still applied to the parent;
     /// the mesh just freezes the curve shape that was visible at dispatch
     /// time. Zoom changes thereafter slide the mesh as a whole rather than
-    /// re-warping each glyph — same trade-off as the point-placement SDF
+    /// re-warping each glyph -- same trade-off as the point-placement SDF
     /// path. Re-running <see cref="Build"/> after a major zoom change
     /// regenerates the curve.
     /// </para>
@@ -28,7 +28,7 @@ namespace MapLibre.Unity.Rendering
         /// glyph centred on the path. Returns null when the text doesn't
         /// fit between the path endpoints (caller should hide the label).
         /// <paramref name="anyMissing"/> reports whether at least one glyph
-        /// was unavailable in the atlas — the caller can then queue a
+        /// was unavailable in the atlas -- the caller can then queue a
         /// glyph fetch and rebuild later.
         /// </summary>
         /// <param name="text">Source string.</param>
@@ -49,7 +49,7 @@ namespace MapLibre.Unity.Rendering
                 || worldPath == null || worldPath.Length < 2)
                 return null;
 
-            // Total text advance (world units) — sum of every glyph's
+            // Total text advance (world units) -- sum of every glyph's
             // advance metric scaled to world space.
             float totalAdvance = 0f;
             foreach (var c in text)
@@ -72,7 +72,7 @@ namespace MapLibre.Unity.Rendering
             }
 
             float startDist = midDist - totalAdvance * 0.5f;
-            // The label has to fit fully inside the path — if either end
+            // The label has to fit fully inside the path -- if either end
             // overflows, bail out. SymbolRenderer's collision detection
             // expects null-from-build to mean "skip this label".
             if (startDist < 0f || startDist + totalAdvance > pathLen)
@@ -92,7 +92,7 @@ namespace MapLibre.Unity.Rendering
                 float glyphAdvance = g.Advance * textScale;
                 if (g.Width <= 0 || g.Height <= 0)
                 {
-                    // Whitespace / control char — only consume advance.
+                    // Whitespace / control char -- only consume advance.
                     currentDist += glyphAdvance;
                     continue;
                 }
@@ -126,7 +126,7 @@ namespace MapLibre.Unity.Rendering
                 float bottom = top - g.Height * textScale;
 
                 // 4 corners (LL, LR, UR, UL). Mesh sits on the XZ plane,
-                // so Y stays at zero — the parent transform is responsible
+                // so Y stays at zero -- the parent transform is responsible
                 // for any vertical offset.
                 Vector3 ll = ToWorld(pos, dir, perp, -halfW, bottom);
                 Vector3 lr = ToWorld(pos, dir, perp,  halfW, bottom);

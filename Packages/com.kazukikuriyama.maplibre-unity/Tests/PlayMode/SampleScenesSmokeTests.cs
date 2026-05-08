@@ -23,7 +23,7 @@ namespace MapLibre.Unity.Tests.PlayMode
     {
         // Hard cap on how long one scene can settle. Demos with long
         // SerializeField-driven timed sequences (RuntimeGeoJsonDemo) intentionally
-        // schedule operations several seconds out — those are not covered by
+        // schedule operations several seconds out -- those are not covered by
         // the smoke test, but the test still needs an upper bound so a stuck
         // scene doesn't run forever.
         private const float MaxSettleSeconds = 1.5f;
@@ -35,7 +35,7 @@ namespace MapLibre.Unity.Tests.PlayMode
         // letting fast scenes early-exit aggressively.
         private const float MinSettleSeconds = 0.3f;
 
-        // Pulled at first access — Build Settings can change between sessions.
+        // Pulled at first access -- Build Settings can change between sessions.
         private static IEnumerable<string> SceneNames
         {
             get
@@ -85,7 +85,7 @@ namespace MapLibre.Unity.Tests.PlayMode
             yield return loadOp;
 
             // Let Awake/Start coroutines settle. Wall-clock time, not
-            // Time.deltaTime — the Editor's PlayMode test runner reports
+            // Time.deltaTime -- the Editor's PlayMode test runner reports
             // deltaTime ≈ 0 once the editor window loses focus, which
             // would stall the polling loop indefinitely. realtimeSinceStartup
             // keeps advancing regardless of focus state.
@@ -93,7 +93,7 @@ namespace MapLibre.Unity.Tests.PlayMode
             // Two-phase wait: first MinSettleSeconds always elapses so any
             // synchronous Start exception is caught; after that the loop
             // exits as soon as every MapLibreMap on the scene reports
-            // IsInitialized — most scenes hit that within ~0.5 s, which is
+            // IsInitialized -- most scenes hit that within ~0.5 s, which is
             // much faster than blanket-waiting MaxSettleSeconds for all of
             // them.
             float startTime = Time.realtimeSinceStartup;
@@ -117,7 +117,7 @@ namespace MapLibre.Unity.Tests.PlayMode
             }
 
             // Forced cleanup between tests. Without this Unity Editor hangs
-            // somewhere around the 22nd consecutive LoadSceneAsync — appears
+            // somewhere around the 22nd consecutive LoadSceneAsync -- appears
             // to be the Editor's PlayMode test runner accumulating asset /
             // GameObject state that isn't GC'd in time. UnloadUnusedAssets
             // returns an AsyncOperation we have to await, then a manual

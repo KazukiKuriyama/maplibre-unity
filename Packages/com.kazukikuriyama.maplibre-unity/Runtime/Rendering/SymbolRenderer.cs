@@ -130,7 +130,7 @@ namespace MapLibre.Unity.Rendering
         private Shader _sdfTextShader;
         private System.Action _onGlyphsLoaded;
         private readonly HashSet<CanonicalTileID> _tilesWithMissingGlyphs = new();
-        // SDF property ids — the values are pushed via MaterialPropertyBlock
+        // SDF property ids -- the values are pushed via MaterialPropertyBlock
         // so labels with different colours share a single Material.
         private static readonly int SdfTextColorPropertyId = Shader.PropertyToID("_TextColor");
         private static readonly int SdfHaloColorPropertyId = Shader.PropertyToID("_HaloColor");
@@ -140,7 +140,7 @@ namespace MapLibre.Unity.Rendering
 
         /// <summary>
         /// Wire the glyph fetching source and SDF shader. Pass null to disable
-        /// SDF text — the renderer falls back to TextMeshPro for every label.
+        /// SDF text -- the renderer falls back to TextMeshPro for every label.
         /// MapRenderer calls this when MapLibreMap.Style.Glyphs is non-empty.
         /// </summary>
         public void SetGlyphSource(GlyphSource glyphSource, Shader sdfTextShader)
@@ -239,6 +239,47 @@ namespace MapLibre.Unity.Rendering
                 return null;
             }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // WebGL Player has no API to enumerate or read OS-installed font
+            // files (Font.GetPathsToOSFonts returns an empty array). Fall back
+            // to Unity's built-in LegacyRuntime.ttf so Latin labels still
+            // render -- CJK / non-Latin scripts still require the user to
+            // assign a TMP_FontAsset via MapLibreMap > Text > Symbol Font.
+            var builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (builtinFont == null)
+            {
+                LogFontWarning();
+                return null;
+            }
+            try
+            {
+                _systemFontFallback = TMP_FontAsset.CreateFontAsset(builtinFont);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[MapLibre] Failed to create font asset from LegacyRuntime.ttf: {e.Message}");
+                LogFontWarning();
+                return null;
+            }
+            if (_systemFontFallback != null)
+            {
+                _systemFontFallback.atlasPopulationMode = AtlasPopulationMode.Dynamic;
+                if (_systemFontFallback.atlasTexture == null)
+                {
+                    var tex = new Texture2D(512, 512, TextureFormat.Alpha8, false);
+                    tex.name = "MapLibre-SystemFont Atlas";
+                    _systemFontFallback.atlasTextures = new[] { tex };
+                    if (_systemFontFallback.material != null)
+                        _systemFontFallback.material.SetTexture(ShaderUtilities.ID_MainTex, tex);
+                }
+                _systemFontFallback.name = "MapLibre-SystemFont (LegacyRuntime.ttf)";
+                Debug.Log("[MapLibre] No Symbol Font assigned. Using built-in LegacyRuntime.ttf " +
+                          "as fallback on WebGL (Latin only -- assign a TMP_FontAsset for CJK).");
+                return _systemFontFallback;
+            }
+            LogFontWarning();
+            return null;
+#else
             var fontPaths = Font.GetPathsToOSFonts();
             if (fontPaths == null || fontPaths.Length == 0)
             {
@@ -291,6 +332,7 @@ namespace MapLibre.Unity.Rendering
 
             LogFontWarning();
             return null;
+#endif
         }
 
         private static void LogFontWarning()
@@ -466,7 +508,7 @@ namespace MapLibre.Unity.Rendering
 
                     // icon-text-fit: stretch the icon to wrap the paired
                     // text. Measure the text envelope first (a quick CSS-px
-                    // approximation — exact glyph metrics aren't available
+                    // approximation -- exact glyph metrics aren't available
                     // until the mesh is built and over-fitting wastes pixels
                     // for the highway-shield use case anyway). Padding goes
                     // [top, right, bottom, left] per spec.
@@ -526,7 +568,7 @@ namespace MapLibre.Unity.Rendering
                 string text = ResolveText(layoutProps, featureCtx);
                 if (!string.IsNullOrEmpty(text))
                 {
-                    // Pull the primary fontstack only when SDF path is wired —
+                    // Pull the primary fontstack only when SDF path is wired --
                     // saves one expression evaluation per feature when the
                     // style does not declare a glyphs URL.
                     string fontstack = _glyphSource != null
@@ -659,7 +701,7 @@ namespace MapLibre.Unity.Rendering
 
             // The text/icon mesh is built in the XY plane; basePlate lays it flat on
             // the XZ ground so it faces +Y for the default top-down camera. Every
-            // rotation below stacks on basePlate — without it, the label stands up in
+            // rotation below stacks on basePlate -- without it, the label stands up in
             // the XY plane and disappears edge-on to a top-down camera.
             var basePlate = Quaternion.Euler(-90f, 0f, 0f);
             var bearingY = Quaternion.Euler(0f, bearingDeg, 0f);
@@ -667,7 +709,7 @@ namespace MapLibre.Unity.Rendering
             // camera pitches forward. Camera rotation is Euler(90-pitch, bearing, 0):
             // its forward is (0, -sin(pitch), cos(pitch)), so the label normal must be
             // (0, sin(pitch), -cos(pitch)) to face it. Starting from basePlate (normal
-            // +Y), that requires rotating by -pitch around X — not +pitch.
+            // +Y), that requires rotating by -pitch around X -- not +pitch.
             var pitchTilt = Quaternion.Euler(-pitchDeg, 0f, 0f);
             var viewportRotOnly = bearingY * basePlate;
             var viewportPitchOnly = pitchTilt * basePlate;
@@ -770,7 +812,7 @@ namespace MapLibre.Unity.Rendering
                 {
                     if (ll.Go == null) continue;
 
-                    // Convert normalized path to world space (used by both branches —
+                    // Convert normalized path to world space (used by both branches --
                     // collision center for SDF, full re-warp source for TMP).
                     // text-translate shifts the entire path so warped glyphs and
                     // collision bounds stay consistent.
@@ -789,7 +831,7 @@ namespace MapLibre.Unity.Rendering
 
                     if (ll.Tmp == null)
                     {
-                        // SDF line label — mesh is baked in tile-local coordinates.
+                        // SDF line label -- mesh is baked in tile-local coordinates.
                         // Track tile movement by setting localPosition; the mesh
                         // shape stays frozen at the dispatch zoom (re-issued by
                         // TileManager on zoom-step boundaries).
@@ -798,7 +840,7 @@ namespace MapLibre.Unity.Rendering
                             tileWorldPos.z + textOffWorld.y);
                         // Use a glyph-pixel advance estimate (~12 px) for collision
                         // halfW since there is no TMP width to query. CharCount
-                        // includes whitespace, which slightly over-pads — fine for
+                        // includes whitespace, which slightly over-pads -- fine for
                         // collision rejection.
                         float sdfHalfW = ll.CharCount * textScale * 12f * 0.5f;
                         SamplePathAtDistance(worldPath, midDist, out var sdfCenter, out _);
@@ -825,7 +867,7 @@ namespace MapLibre.Unity.Rendering
                         orientedMid = midDist;
                     }
 
-                    // Re-warp text — temporarily activate so ForceMeshUpdate works
+                    // Re-warp text -- temporarily activate so ForceMeshUpdate works
                     bool wasActive = ll.Go.activeSelf;
                     if (!wasActive) ll.Go.SetActive(true);
                     ll.Tmp.transform.localRotation = Quaternion.identity;
@@ -853,7 +895,7 @@ namespace MapLibre.Unity.Rendering
             var placedBoxes = new List<Rect>();
 
             // Sort labels by symbol-sort-key DESC so higher-priority features place first.
-            // Labels with the same sort key keep insertion order — stable sort.
+            // Labels with the same sort key keep insertion order -- stable sort.
             allLabels.Sort((a, b) => b.label.SortKey.CompareTo(a.label.SortKey));
             allLineLabels.Sort((a, b) => b.label.SortKey.CompareTo(a.label.SortKey));
 

@@ -67,7 +67,7 @@ namespace MapLibre.Unity.Expressions
             }
 
             // `all` / `any` / `!` exist in both forms, but in filter context they
-            // wrap nested filters — recurse through the legacy path which itself
+            // wrap nested filters -- recurse through the legacy path which itself
             // reroutes each child via ParseFilter.
             if (op is "all" or "any" or "!")
             {

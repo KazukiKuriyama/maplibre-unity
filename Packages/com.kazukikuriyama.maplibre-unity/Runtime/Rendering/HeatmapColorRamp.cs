@@ -16,12 +16,12 @@ namespace MapLibre.Unity.Rendering
         /// </summary>
         private static readonly Color[] DefaultColors =
         {
-            new(0f, 0f, 1f, 0f),     // 0.0 — transparent blue
-            new(0f, 0f, 1f, 1f),     // ~0.1 — blue
-            new(0f, 1f, 1f, 1f),     // ~0.3 — cyan
-            new(0f, 1f, 0f, 1f),     // ~0.5 — lime
-            new(1f, 1f, 0f, 1f),     // ~0.7 — yellow
-            new(1f, 0f, 0f, 1f),     // 1.0 — red
+            new(0f, 0f, 1f, 0f),     // 0.0 -- transparent blue
+            new(0f, 0f, 1f, 1f),     // ~0.1 -- blue
+            new(0f, 1f, 1f, 1f),     // ~0.3 -- cyan
+            new(0f, 1f, 0f, 1f),     // ~0.5 -- lime
+            new(1f, 1f, 0f, 1f),     // ~0.7 -- yellow
+            new(1f, 0f, 0f, 1f),     // 1.0 -- red
         };
 
         private static readonly float[] DefaultStops = { 0f, 0.1f, 0.3f, 0.5f, 0.7f, 1f };

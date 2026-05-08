@@ -8,7 +8,7 @@ using UnityEngine;
 namespace MapLibre.Unity
 {
     /// <summary>
-    /// Source CRUD surface — AddSource overloads (URL / custom raster / custom
+    /// Source CRUD surface -- AddSource overloads (URL / custom raster / custom
     /// vector / image), RemoveSource, lookup helpers, and the small async
     /// callbacks that finish loading TileJSON / GeoJSON after AddSource returns.
     /// All state lives in the field declarations on the main partial.
@@ -35,7 +35,7 @@ namespace MapLibre.Unity
             }
 
             Style.Sources[id] = definition;
-            // Keep the effective zoom range in sync — without this, a runtime
+            // Keep the effective zoom range in sync -- without this, a runtime
             // AddSource on a previously-empty style leaves the sentinels at
             // (min=22,max=0) and TileGrid.GetVisibleTilesLOD roots at z=22 on
             // the next frame, freezing the main thread.
@@ -110,7 +110,7 @@ namespace MapLibre.Unity
 
             // Build a SourceDefinition mirror so attribution / bounds / zoom-range
             // queries against Style.Sources work the same way for HTTP and custom
-            // sources. Tiles list stays empty — the loader supplies them.
+            // sources. Tiles list stays empty -- the loader supplies them.
             var def = new SourceDefinition
             {
                 Type = SourceType.Raster,
@@ -235,8 +235,8 @@ namespace MapLibre.Unity
             await source.LoadDataAsync();
             // RefreshTiles (not _needsTileUpdate) so tiles already added to
             // _activeTiles before data was ready get re-requested. Setting only
-            // _needsTileUpdate would skip them — UpdateVisibleTiles fires
-            // OnTileNeeded for new tile IDs only — leaving them stuck in Error
+            // _needsTileUpdate would skip them -- UpdateVisibleTiles fires
+            // OnTileNeeded for new tile IDs only -- leaving them stuck in Error
             // state until the user pans/zooms the active set.
             RefreshTiles();
         }
@@ -341,7 +341,7 @@ namespace MapLibre.Unity
 
         /// <summary>
         /// Returns the <c>lineMetrics</c> flag declared by the source. line-gradient
-        /// is gated on this per Style Spec — without lineMetrics the line shader has
+        /// is gated on this per Style Spec -- without lineMetrics the line shader has
         /// no per-vertex progress to sample with, and the property has no effect.
         /// </summary>
         private bool ResolveSourceLineMetrics(string sourceId)

@@ -8,8 +8,8 @@ namespace MapLibre.Unity.VectorTile
     /// Once a tile has been built by <see cref="VectorTileParser"/> /
     /// <see cref="MapLibre.Unity.Source.GeoJsonToVectorTile"/>, all of its
     /// fields are immutable from external code: setters and list mutators
-    /// are <c>internal</c> so that downstream renderers — which may run on
-    /// a background thread for mesh-build — can read tile data without
+    /// are <c>internal</c> so that downstream renderers -- which may run on
+    /// a background thread for mesh-build -- can read tile data without
     /// races. The shipping parser/transcoder is the only writer, and it
     /// completes the tile on its own background thread before publishing
     /// the instance.

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -33,21 +34,21 @@ namespace MapLibre.Unity.Samples
         [SerializeField]
         private List<SampleEntry> _samples = new()
         {
-            // === Basic — start here ===
+            // === Basic -- start here ===
             new SampleEntry { Title = "Basic Raster Map",      Description = "Raster tiles, no styling",                                       SceneName = "BasicRasterMapScene",         Category = "Basic" },
             new SampleEntry { Title = "Vector Demo",           Description = "Basic vector tile rendering",                                    SceneName = "VectorDemoScene",             Category = "Basic" },
             new SampleEntry { Title = "Vector With Labels",    Description = "Vector tiles + text labels",                                     SceneName = "SampleScene",                 Category = "Basic" },
 
-            // === Source — adding data dynamically ===
+            // === Source -- adding data dynamically ===
             new SampleEntry { Title = "GeoJSON",               Description = "Render a GeoJSON source",                                        SceneName = "GeoJsonDemoScene",            Category = "Source" },
             new SampleEntry { Title = "Runtime GeoJSON",       Description = "Update GeoJSON data at runtime",                                 SceneName = "RuntimeGeoJsonDemoScene",     Category = "Source" },
             new SampleEntry { Title = "Dynamic Source/Layer",  Description = "Add / remove sources and layers at runtime",                     SceneName = "DynamicSourceLayerDemoScene", Category = "Source" },
-            new SampleEntry { Title = "PMTiles (HTTP Range)",  Description = "Stream a single-file PMTiles archive over HTTP Range — works on WebGL", SceneName = "PMTilesDemoScene",      Category = "Source" },
+            new SampleEntry { Title = "PMTiles (HTTP Range)",  Description = "Stream a single-file PMTiles archive over HTTP Range -- works on WebGL", SceneName = "PMTilesDemoScene",      Category = "Source" },
             new SampleEntry { Title = "Image Source",          Description = "Drape a single image between four geographic corners",            SceneName = "ImageSourceDemoScene",        Category = "Source" },
             new SampleEntry { Title = "Prefab Source",         Description = "Anchor 3D primitive prefabs to LngLat coordinates",              SceneName = "PrefabSourceDemoScene",       Category = "Source" },
             new SampleEntry { Title = "Particle Source",       Description = "Anchor ParticleSystem effects to LngLat (smoke / sparkle / burst)", SceneName = "ParticleSourceDemoScene",  Category = "Source" },
 
-            // === Layer — every built-in layer type ===
+            // === Layer -- every built-in layer type ===
             new SampleEntry { Title = "Circle Layer",          Description = "Circle layer rendering",                                         SceneName = "CircleDemoScene",             Category = "Layer" },
             new SampleEntry { Title = "Dash Line",             Description = "Dashed line via line-dasharray",                                 SceneName = "DashLineTestScene",           Category = "Layer" },
             new SampleEntry { Title = "Line Labels",           Description = "Text placement along curved lines",                              SceneName = "LineLabelsDemoScene",         Category = "Layer" },
@@ -62,7 +63,7 @@ namespace MapLibre.Unity.Samples
             new SampleEntry { Title = "Circle Pitch",          Description = "circle-pitch-alignment × circle-pitch-scale combinations side-by-side", SceneName = "CirclePitchDemoScene",  Category = "Layer" },
             new SampleEntry { Title = "Background Pattern",    Description = "background-pattern with a runtime-registered sprite",             SceneName = "BackgroundPatternDemoScene",  Category = "Layer" },
 
-            // === Text / Icon — symbol layer paths ===
+            // === Text / Icon -- symbol layer paths ===
             new SampleEntry { Title = "Font Test",             Description = "Multi-language font rendering",                                  SceneName = "FontTestScene",               Category = "Text/Icon" },
             new SampleEntry { Title = "Sprite Icon",           Description = "Sprite icon rendering",                                          SceneName = "SpriteIconTestScene",         Category = "Text/Icon" },
             new SampleEntry { Title = "Glyph URL",             Description = "SDF text via MapLibre glyph PBFs (no TMP font asset needed)",    SceneName = "GlyphUrlDemoScene",           Category = "Text/Icon" },
@@ -70,7 +71,7 @@ namespace MapLibre.Unity.Samples
             // === UI ===
             new SampleEntry { Title = "Marker & Popup",        Description = "Marker / Popup API",                                             SceneName = "MarkerPopupDemoScene",        Category = "UI" },
 
-            // === API — runtime style + camera mutation ===
+            // === API -- runtime style + camera mutation ===
             new SampleEntry { Title = "Style Switch",          Description = "Swap style.json at runtime",                                     SceneName = "StyleSwitchDemoScene",        Category = "API" },
             new SampleEntry { Title = "Fit Bounds",            Description = "fitBounds() camera helper",                                      SceneName = "FitBoundsDemoScene",          Category = "API" },
             new SampleEntry { Title = "Camera Animation",      Description = "easeTo / flyTo / zoomTo / rotateTo / panBy / jumpTo side-by-side", SceneName = "CameraAnimationDemoScene",   Category = "API" },
@@ -80,7 +81,7 @@ namespace MapLibre.Unity.Samples
             new SampleEntry { Title = "Query Features",        Description = "queryRenderedFeatures",                                          SceneName = "QueryFeaturesDemoScene",      Category = "API" },
             new SampleEntry { Title = "Feature State Hover",   Description = "Hover / click polygons via setFeatureState",                     SceneName = "FeatureStateHoverDemoScene",  Category = "API" },
 
-            // === Custom — extension points for user code ===
+            // === Custom -- extension points for user code ===
             new SampleEntry { Title = "Custom Layer",          Description = "Render user-supplied geometry via ICustomLayer",                 SceneName = "CustomLayerDemoScene",        Category = "Custom" },
             new SampleEntry { Title = "Custom Source",         Description = "Serve tiles from a user backend via ICustomRasterSource",       SceneName = "CustomSourceDemoScene",       Category = "Custom" },
 
@@ -99,7 +100,7 @@ namespace MapLibre.Unity.Samples
         // round-trips within a single Play session. Reset on Play start (the
         // RuntimeInitializeOnLoadMethod below) so the position does not bleed
         // between sessions when "Reload Domain" is disabled in Enter Play Mode
-        // settings — with the default (domain reload on) the static would
+        // settings -- with the default (domain reload on) the static would
         // already reset itself, but keeping the explicit reset makes the
         // behaviour identical in both modes.
         private static float s_savedScrollY;
@@ -118,7 +119,7 @@ namespace MapLibre.Unity.Samples
 
         private IEnumerator Start()
         {
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             yield return null;
             BuildUI();
         }
@@ -281,7 +282,7 @@ namespace MapLibre.Unity.Samples
             scroll.contentContainer.style.height = contentHeight;
 
             // Restore the previous scroll position once the ScrollView has
-            // laid out — verticalScroller.highValue is 0 until the first
+            // laid out -- verticalScroller.highValue is 0 until the first
             // GeometryChangedEvent, so applying any non-zero saved value here
             // would silently clamp to 0. Self-unregister to keep the listener
             // single-shot.
@@ -299,7 +300,7 @@ namespace MapLibre.Unity.Samples
 
         private void OnDisable()
         {
-            // Capture before SceneManager tears down the UIDocument — fires on
+            // Capture before SceneManager tears down the UIDocument -- fires on
             // both demo-scene transitions and Play-stop. The static field is
             // reset at Play start so a stale value from a prior session never
             // leaks back in.
@@ -474,7 +475,7 @@ namespace MapLibre.Unity.Samples
         }
 
         // UI Toolkit Buttons set inline via C# don't pick up the default
-        // :hover / :active USS rules — drive the color manually from pointer
+        // :hover / :active USS rules -- drive the color manually from pointer
         // events. Tracks hover + press independently so leaving while pressed
         // reverts to normal and re-entering returns to active until released.
         private static void ApplyButtonHoverStates(VisualElement btn,
@@ -630,8 +631,8 @@ exposes a small clustering API (`GetCluster`, `GetClusterChildren`,
 `GetClusterLeaves`, `GetClusterExpansionZoom`) modelled after
 [mapbox/supercluster](https://github.com/mapbox/supercluster) so that
 GeoJSONSource cluster queries match the MapLibre GL JS surface. The
-implementation is independent — an O(N²) per-zoom merge rather than
-the upstream KD-tree — and no upstream source is incorporated. The
+implementation is independent -- an O(N²) per-zoom merge rather than
+the upstream KD-tree -- and no upstream source is incorporated. The
 API attribution is provided here for nominative reference only."),
 
             ("mapbox/geojson-vt (clean-room reference)", @"`Packages/com.kazukikuriyama.maplibre-unity/Runtime/Source/GeoJsonToVectorTile.cs`
@@ -677,20 +678,20 @@ package stays binding-agnostic."),
 
             ("Trademark Notice", @"""Mapbox"" is a registered trademark of Mapbox, Inc.; ""MapLibre"" is a
 trademark of the MapLibre community. References to these names in
-this file and in source comments are nominative — used only to
+this file and in source comments are nominative -- used only to
 identify the public specifications and upstream projects this library
-is interoperable with — and do not imply any affiliation with,
+is interoperable with -- and do not imply any affiliation with,
 endorsement by, or sponsorship from either organization."),
 
             ("Tile Providers", @"The bundled sample scenes reference public tile servers for illustration
-purposes. The library itself fetches tiles via HTTP only — no tile data is
+purposes. The library itself fetches tiles via HTTP only -- no tile data is
 redistributed. When forking a sample for shipping, confirm your use case
 fits each provider's terms; for heavy / commercial traffic, switch to a
 provider you have a commercial agreement with.
 
 | Provider | URL template | License / Terms | Used by |
 |---|---|---|---|
-| OpenStreetMap Standard | `tile.openstreetmap.org/{z}/{x}/{y}.png` | [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/) — heavy / commercial use prohibited; ODbL on data | BasicRasterMap, MarkerPopupDemo, EventDemo, PointerEventDemo, TerrainDemo, GeoJsonDemo, CustomLayerDemo, FeatureStateHoverDemo, ColorInterpolationDemo, CustomSourceDemo, PerFeaturePatternDemo, ImageSourceDemo, DynamicSourceLayerDemo, PMTilesDemo, BackgroundPatternDemo, PrefabSourceDemo, ParticleSourceDemo, StyleSwitchDemo |
+| OpenStreetMap Standard | `tile.openstreetmap.org/{z}/{x}/{y}.png` | [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/) -- heavy / commercial use prohibited; ODbL on data | BasicRasterMap, MarkerPopupDemo, EventDemo, PointerEventDemo, TerrainDemo, GeoJsonDemo, CustomLayerDemo, FeatureStateHoverDemo, ColorInterpolationDemo, CustomSourceDemo, PerFeaturePatternDemo, ImageSourceDemo, DynamicSourceLayerDemo, PMTilesDemo, BackgroundPatternDemo, PrefabSourceDemo, ParticleSourceDemo, StyleSwitchDemo |
 | CARTO Voyager | `basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png` | CC BY 3.0 (basemap design) + ODbL (data); see [carto.com/attributions](https://carto.com/attributions) | StyleSwitchDemo |
 | OpenTopoMap | `a.tile.opentopomap.org/{z}/{x}/{y}.png` | CC-BY-SA 3.0 (style) + ODbL (data) + SRTM; non-commercial / educational use, see [opentopomap.org/about](https://opentopomap.org/about) | StyleSwitchDemo |
 | OpenFreeMap (planet) | `tiles.openfreemap.org/planet/{z}/{x}/{y}.pbf` | OpenMapTiles schema + OSM (ODbL); free public service, see [openfreemap.org](https://openfreemap.org) | VectorDemo, CircleDemo, FillExtrusionDemo, HeatmapDemo, LineGradientDemo, DashLineTest, SkyAndLightDemo, SymbolTranslateDemo, etc. |
@@ -739,7 +740,7 @@ This generates a TMP_FontAsset from OS system fonts and auto-assigns it to MapLi
 **Runtime fallback (development only):**
 If no font is assigned, MapLibre Unity reads fonts already installed on the OS
 (Hiragino on macOS, Yu Gothic on Windows, etc.) and uses them at runtime.
-This is the same as a web browser or word processor displaying text with OS fonts —
+This is the same as a web browser or word processor displaying text with OS fonts --
 no font files are copied or redistributed. This feature exists so that developers
 can test without configuring a font first.
 

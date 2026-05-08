@@ -20,7 +20,7 @@ namespace MapLibre.Unity
             // First ring must be exterior and contain the point
             if (!PointInRing(point, polygonRings[0])) return false;
 
-            // Subsequent rings are holes — point must NOT be inside any hole
+            // Subsequent rings are holes -- point must NOT be inside any hole
             for (int i = 1; i < polygonRings.Count; i++)
             {
                 if (PointInRing(point, polygonRings[i])) return false;

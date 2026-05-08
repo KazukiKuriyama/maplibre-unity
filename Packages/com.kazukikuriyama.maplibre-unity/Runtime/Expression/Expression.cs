@@ -12,7 +12,7 @@ namespace MapLibre.Unity.Expressions
         public bool IsConstant { get; protected set; }
 
         /// <summary>
-        /// True if this expression — or any nested sub-expression — reads
+        /// True if this expression -- or any nested sub-expression -- reads
         /// runtime feature state via <c>["feature-state", ...]</c>. Used by
         /// MapLibreMap to skip costly tile rebuilds when no layer would
         /// actually observe a SetFeatureState call. The default returns false;
@@ -147,7 +147,7 @@ namespace MapLibre.Unity.Expressions
     }
 
     /// <summary>
-    /// <c>["line-progress"]</c> — normalised distance (0..1) along the current
+    /// <c>["line-progress"]</c> -- normalised distance (0..1) along the current
     /// line feature. Only meaningful as the input of the line-gradient
     /// interpolate expression: the renderer evaluates it at 256 sample points
     /// while baking the gradient ramp texture.
@@ -159,7 +159,7 @@ namespace MapLibre.Unity.Expressions
     }
 
     /// <summary>
-    /// <c>["feature-state", "key"]</c> — looks up the runtime state value attached
+    /// <c>["feature-state", "key"]</c> -- looks up the runtime state value attached
     /// to the current feature. Returns null when no state has been registered for
     /// this feature/key, which lets downstream <c>coalesce</c> or <c>case</c> branches
     /// supply a default.

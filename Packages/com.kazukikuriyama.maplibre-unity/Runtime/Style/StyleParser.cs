@@ -135,7 +135,7 @@ namespace MapLibre.Unity.Style
                     : obj["atmosphere-blend"].ToObject<float>();
             }
 
-            // Legacy Mapbox v8 sky properties — folded into the closest MapLibre
+            // Legacy Mapbox v8 sky properties -- folded into the closest MapLibre
             // equivalent so old styles still render reasonably instead of going
             // blank. sky-gradient (interpolate over sky-radial-progress) gets
             // sampled at 0 (top) and 1 (horizon) to derive the two endpoint
@@ -266,7 +266,7 @@ namespace MapLibre.Unity.Style
                 source.ClusterMinPoints = obj["clusterMinPoints"]?.ToObject<int>() ?? 2;
             }
 
-            // lineMetrics — enables ["line-progress"] expressions for line-gradient.
+            // lineMetrics -- enables ["line-progress"] expressions for line-gradient.
             // Spec applies to vector and geojson sources.
             if (source.Type == SourceType.Vector || source.Type == SourceType.GeoJson)
                 source.LineMetrics = obj["lineMetrics"]?.ToObject<bool>() ?? false;

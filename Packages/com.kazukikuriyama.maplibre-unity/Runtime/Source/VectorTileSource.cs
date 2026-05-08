@@ -98,7 +98,7 @@ namespace MapLibre.Unity.Source
                 return;
 
             // Tiles outside the source's declared bounds are served as empty
-            // instead of being requested — matches MapLibre GL JS behavior.
+            // instead of being requested -- matches MapLibre GL JS behavior.
             if (!Definition.ContainsTile(tileId))
             {
                 var empty = new VectorTileData();
@@ -195,7 +195,7 @@ namespace MapLibre.Unity.Source
                         finished = true;
                         if (bytes == null || bytes.Length == 0)
                         {
-                            // Treat empty as "no data here" — same behaviour as
+                            // Treat empty as "no data here" -- same behaviour as
                             // an HTTP 404 in the URL fetcher.
                             var empty = new VectorTileData();
                             _cache.Put(tileId, empty);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -37,7 +38,7 @@ namespace MapLibre.Unity.Samples
                 return;
             }
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 12);
+            _font = SystemFontFallback.Resolve("Arial", 12);
             BuildOverlay();
 
             _map.On(MapEventType.Load, OnLoad);
@@ -235,7 +236,7 @@ namespace MapLibre.Unity.Samples
         {
             Debug.Log(string.IsNullOrEmpty(details)
                 ? $"[MapEventDemo] {type}"
-                : $"[MapEventDemo] {type} — {details}");
+                : $"[MapEventDemo] {type} -- {details}");
 
             if (_scroll == null) return;
 

@@ -82,7 +82,7 @@ namespace MapLibre.Unity.CameraControl
         /// is pushed out for steep pitches.
         ///
         /// Public so external rigs (FreeCameraOptions / Cinemachine) can keep
-        /// the frustum honest after they move the transform — without this,
+        /// the frustum honest after they move the transform -- without this,
         /// orbit / dolly setups whose camera-to-target distance exceeds the
         /// map-driven far plane render only background.
         /// </summary>
@@ -186,7 +186,7 @@ namespace MapLibre.Unity.CameraControl
                 {
                     float t = -ray.origin.y / ray.direction.y;
 
-                    // Clamp ray distance to far clip plane — ground beyond it won't render
+                    // Clamp ray distance to far clip plane -- ground beyond it won't render
                     t = Mathf.Min(t, farClip);
 
                     Vector3 hit = ray.origin + ray.direction * t;
@@ -194,7 +194,7 @@ namespace MapLibre.Unity.CameraControl
                 }
                 else
                 {
-                    // Ray parallel to or away from ground — project to far clip distance
+                    // Ray parallel to or away from ground -- project to far clip distance
                     Vector3 hit = ray.origin + ray.direction * farClip;
                     groundPoints[i] = new Vector3(hit.x, 0, hit.z);
                 }

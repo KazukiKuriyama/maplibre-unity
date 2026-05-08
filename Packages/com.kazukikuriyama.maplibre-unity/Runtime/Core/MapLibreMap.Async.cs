@@ -70,7 +70,7 @@ namespace MapLibre.Unity
 
         /// <summary>
         /// Awaitable counterpart of <see cref="EaseTo(EaseToOptions)"/>.
-        /// Resolves when the animation ends — naturally or via
+        /// Resolves when the animation ends -- naturally or via
         /// <see cref="MapAnimator.CancelAnimation"/> / a competing animation.
         /// Throws <see cref="OperationCanceledException"/> when the supplied
         /// <paramref name="cancellationToken"/> is signalled.
@@ -139,7 +139,7 @@ namespace MapLibre.Unity
         public async Awaitable SetStyleAsync(string styleUrl, CancellationToken cancellationToken = default)
         {
             if (!_isInitialized)
-                throw new InvalidOperationException("MapLibreMap is not initialized yet — await LoadAsync() first.");
+                throw new InvalidOperationException("MapLibreMap is not initialized yet -- await LoadAsync() first.");
             cancellationToken.ThrowIfCancellationRequested();
 
             string json;
@@ -164,7 +164,7 @@ namespace MapLibre.Unity
         public async Awaitable SetStyleJsonAsync(string json, CancellationToken cancellationToken = default)
         {
             if (!_isInitialized)
-                throw new InvalidOperationException("MapLibreMap is not initialized yet — await LoadAsync() first.");
+                throw new InvalidOperationException("MapLibreMap is not initialized yet -- await LoadAsync() first.");
             cancellationToken.ThrowIfCancellationRequested();
             await ApplyStyleJsonInternalAsync(json);
         }

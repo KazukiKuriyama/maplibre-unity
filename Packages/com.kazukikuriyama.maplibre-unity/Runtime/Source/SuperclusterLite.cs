@@ -41,7 +41,7 @@ namespace MapLibre.Unity.Source
 
             /// <summary>
             /// Stable cluster identifier used by the cluster query API. Persists across
-            /// zoom levels — the same singleton has one ClusterId regardless of which
+            /// zoom levels -- the same singleton has one ClusterId regardless of which
             /// level it appears at.
             /// </summary>
             public long ClusterId;
@@ -186,7 +186,7 @@ namespace MapLibre.Unity.Source
             var leaves = new List<ClusterPoint>();
             if (!_byId.TryGetValue(clusterId, out var cp)) return leaves;
 
-            // DFS — leftmost (insertion order) first for deterministic results.
+            // DFS -- leftmost (insertion order) first for deterministic results.
             var stack = new Stack<ClusterPoint>();
             stack.Push(cp);
             while (stack.Count > 0)
@@ -249,7 +249,7 @@ namespace MapLibre.Unity.Source
 
                 if (children.Count <= 1 || totalCount < MinPoints)
                 {
-                    // Pass through unchanged — same instance, same ClusterId. The point
+                    // Pass through unchanged -- same instance, same ClusterId. The point
                     // therefore appears in multiple levels with one shared identity.
                     result.Add(p);
                 }

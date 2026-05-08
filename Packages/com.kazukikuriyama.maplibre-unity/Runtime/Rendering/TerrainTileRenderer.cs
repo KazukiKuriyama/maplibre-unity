@@ -12,7 +12,7 @@ namespace MapLibre.Unity.Rendering
     /// the displaced surface, producing real 3D relief visible at any pitch.
     ///
     /// Each tile owns its own Material instance (rather than sharing one and
-    /// using MaterialPropertyBlock) — this is the only reliable way to bind a
+    /// using MaterialPropertyBlock) -- this is the only reliable way to bind a
     /// runtime-created texture for vertex-stage sampling in URP. The MPB path
     /// silently leaves the DEM unbound in vertex shaders, leaving the mesh flat.
     /// Per-tile materials cost <100 KB total for the typical 16-tile working set.

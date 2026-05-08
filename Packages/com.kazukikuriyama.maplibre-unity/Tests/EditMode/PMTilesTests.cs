@@ -56,7 +56,7 @@ namespace MapLibre.Unity.Tests.EditMode
         public void Header_RejectsBadMagic()
         {
             var bytes = new byte[PMTilesHeader.HeaderSize];
-            // First 7 bytes are not "PMTiles" — should reject.
+            // First 7 bytes are not "PMTiles" -- should reject.
             Assert.Throws<InvalidOperationException>(() => PMTilesHeader.Parse(bytes));
         }
 

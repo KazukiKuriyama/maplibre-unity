@@ -20,7 +20,7 @@ namespace MapLibre.Unity.Rendering
         private readonly Dictionary<CanonicalTileID, List<GameObject>> _activeTileObjects = new();
         // Snapshot of objects awaiting replacement during an in-place rebuild
         // (feature-state invalidation). Old GOs stay visible until matching new
-        // meshes arrive from the re-dispatch — prevents the flicker that a
+        // meshes arrive from the re-dispatch -- prevents the flicker that a
         // hard Clear() would cause on every SetFeatureState call.
         private readonly Dictionary<CanonicalTileID, List<GameObject>> _staleTileObjects = new();
         private int _staleSweepDeadlineFrame = -1;
@@ -286,7 +286,7 @@ namespace MapLibre.Unity.Rendering
 
             // fill-pattern is per-feature: ["match", ["get", "class"], "park", ...]
             // resolves to a different sprite for each feature. Group features by
-            // their resolved pattern name and emit one mesh per group — same
+            // their resolved pattern name and emit one mesh per group -- same
             // pattern groups in atlas use _fillPatternMaterial, the (possibly
             // implicit) "" group falls back to the plain _fillMaterial.
             var groups = GroupByPattern(features, paintProps.FillPattern,
@@ -308,7 +308,7 @@ namespace MapLibre.Unity.Rendering
                 var groupFeatures = kv.Value;
 
                 // The out variables are only definitely assigned when the &&
-                // chain reaches TryGetEntry — pre-declare so the if-branch can
+                // chain reaches TryGetEntry -- pre-declare so the if-branch can
                 // reference them without the compiler tripping on short-circuit.
                 SpriteEntry patternEntry = default;
                 Rect patternUv = default;
@@ -431,7 +431,7 @@ namespace MapLibre.Unity.Rendering
             // Spec: only effective when the source has lineMetrics: true. When
             // both are wired we bake a 256x1 ramp from the expression and route
             // every feature through MapLibre/LineGradient (no per-feature
-            // bucketing — the gradient is layer-uniform).
+            // bucketing -- the gradient is layer-uniform).
             bool gradientEligible = paintProps.LineGradient != null
                 && _lineGradientShader != null
                 && (_lineMetricsResolver == null || _lineMetricsResolver(layerDef.Source));
@@ -595,7 +595,7 @@ namespace MapLibre.Unity.Rendering
             ramp.SetPixels32(pixels);
             ramp.Apply(false, true);
 
-            // Reuse the cached material slot when only the texture changed —
+            // Reuse the cached material slot when only the texture changed --
             // saves a Material allocation on style edits.
             Material mat;
             if (entry.Material != null)
@@ -643,7 +643,7 @@ namespace MapLibre.Unity.Rendering
 
             BackgroundTask.Run(() =>
             {
-                // colorExpr is irrelevant for gradient — the shader samples the
+                // colorExpr is irrelevant for gradient -- the shader samples the
                 // ramp instead. We pass null so per-vertex colors stay at the
                 // default (unused). Opacity is folded into _LayerOpacity.
                 var meshData = VectorTileMeshBuilder.BuildLineMeshData(
@@ -677,7 +677,7 @@ namespace MapLibre.Unity.Rendering
         /// <summary>
         /// Filter features by geometry type and layer filter expression. Non-static
         /// so the EvaluationContext picks up <see cref="_featureStateStore"/> and
-        /// the layer's source ids — needed for filters that read feature-state
+        /// the layer's source ids -- needed for filters that read feature-state
         /// (e.g. <c>["==", ["feature-state", "selected"], true]</c>).
         /// </summary>
         private List<VectorTileFeature> FilterFeatures(VectorTileLayer layer,
@@ -753,7 +753,7 @@ namespace MapLibre.Unity.Rendering
                 }
 
                 // Each (tile, layer, group) emits one GameObject. Skip if we
-                // already realised this exact triple — re-dispatching a tile
+                // already realised this exact triple -- re-dispatching a tile
                 // can race the original Task.Run and produce a second mesh
                 // whose contents duplicate the first.
                 string targetName = string.IsNullOrEmpty(pending.GroupKey)

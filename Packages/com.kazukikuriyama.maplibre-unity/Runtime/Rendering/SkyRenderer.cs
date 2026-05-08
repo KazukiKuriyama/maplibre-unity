@@ -11,7 +11,7 @@ namespace MapLibre.Unity.Rendering
     /// through as sky + horizon.
     ///
     /// The mesh is a single quad with vertices already in NDC, and the shader
-    /// skips MVP transformation — so the quad always fills the screen
+    /// skips MVP transformation -- so the quad always fills the screen
     /// regardless of camera pose. No per-frame transform tracking needed.
     /// </summary>
     public class SkyRenderer
@@ -44,7 +44,7 @@ namespace MapLibre.Unity.Rendering
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             mr.receiveShadows = false;
             // The shader already skips MVP so view/projection culling must be
-            // relaxed — otherwise the quad's NDC-space bounds get culled.
+            // relaxed -- otherwise the quad's NDC-space bounds get culled.
             mr.allowOcclusionWhenDynamic = false;
         }
 

@@ -7,7 +7,7 @@ namespace MapLibre.Unity.Terrain
     /// <summary>
     /// Tracks DEM tiles loaded for the active terrain source and exposes them to
     /// renderers that need GPU-side elevation sampling. Lifecycle is owned by
-    /// MapLibreMap; the manager itself does not fetch tiles — it only registers
+    /// MapLibreMap; the manager itself does not fetch tiles -- it only registers
     /// textures handed in by the existing tile loading pipeline.
     /// </summary>
     public class TerrainManager

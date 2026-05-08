@@ -15,7 +15,7 @@ namespace MapLibre.Unity
         private readonly Dictionary<CanonicalTileID, TileState> _tileStates = new();
 
         // Tiles that left the required set this frame are not expired
-        // immediately — they sit here until ExpirationGraceFrames frames have
+        // immediately -- they sit here until ExpirationGraceFrames frames have
         // elapsed without becoming required again. Prevents flicker during
         // orbit / fast pan when frustum culling oscillates a tile in and out
         // across consecutive frames; the entries are cleared the moment the

@@ -341,7 +341,7 @@ namespace MapLibre.Unity.Source
             }
             else if (task.IsCanceled)
             {
-                // Cancelled — no callback
+                // Cancelled -- no callback
             }
             else if (task.IsFaulted)
             {

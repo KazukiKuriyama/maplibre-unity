@@ -105,7 +105,7 @@ namespace MapLibre.Unity.Rendering
         /// rebuilds with current state. Used by feature-state invalidation to
         /// avoid the heavy <see cref="MapLibreMap.RefreshTiles"/> path that
         /// rebuilds every layer's tiles. Returns true when a renderer was
-        /// matched (raster/hillshade/terrain/image return false — those layer
+        /// matched (raster/hillshade/terrain/image return false -- those layer
         /// types don't observe feature-state today).
         /// </summary>
         public bool InvalidateLayer(string layerId)
@@ -198,7 +198,7 @@ namespace MapLibre.Unity.Rendering
                         if (sourceType == SourceType.Image)
                         {
                             // Image sources render a single quad draped over 4 geographic
-                            // corners — no tile management.
+                            // corners -- no tile management.
                             var imageRenderer = new ImageRenderer(mapRoot, _rasterShader, vectorLayerOrder);
                             imageRenderer.SetPaintProperties(StyleParser.ParseRasterPaint(layer.Paint));
                             _imageRenderers[layer.Id] = imageRenderer;
@@ -427,7 +427,7 @@ namespace MapLibre.Unity.Rendering
 
                 case LayerType.Custom:
                     // Custom layers are driven by the user's ICustomLayer.Render
-                    // callback — there is no built-in renderer to construct. We
+                    // callback -- there is no built-in renderer to construct. We
                     // still consume a layerOrder slot so subsequent layers stack
                     // above this one in the render queue.
                     _nextLayerOrder++;
@@ -580,7 +580,7 @@ namespace MapLibre.Unity.Rendering
             if (_style?.Layers == null) return;
 
             // Iterate Style.Layers (not the dictionary) so render happens in the
-            // user-defined order — the same order used by every other renderer.
+            // user-defined order -- the same order used by every other renderer.
             foreach (var def in _style.Layers)
             {
                 if (def.Type != LayerType.Custom) continue;
@@ -742,7 +742,7 @@ namespace MapLibre.Unity.Rendering
                 {
                     if (!_backgroundRenderer.UpdatePattern(patternName, opacity))
                     {
-                        // Sprite atlas missing the entry — fall back to color so
+                        // Sprite atlas missing the entry -- fall back to color so
                         // the layer keeps drawing something instead of going blank.
                         _backgroundRenderer.UpdatePattern(null, opacity);
                         _backgroundRenderer.UpdateColor(

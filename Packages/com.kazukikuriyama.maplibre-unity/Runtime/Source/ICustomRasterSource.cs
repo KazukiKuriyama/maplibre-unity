@@ -41,7 +41,7 @@ namespace MapLibre.Unity.Source
         /// when the tile cannot be produced.
         ///
         /// <para>
-        /// Callbacks must be invoked on the main thread — Unity texture upload
+        /// Callbacks must be invoked on the main thread -- Unity texture upload
         /// requires it. If your work is off-thread, marshal back via
         /// <c>UnityMainThreadDispatcher</c> or a coroutine before calling.
         /// </para>

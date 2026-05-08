@@ -17,7 +17,7 @@ namespace MapLibre.Unity.Source.PMTiles
     {
         /// <summary>
         /// Convert a (z, x, y) tile coordinate to its PMTiles tile id.
-        /// Throws for z &gt; 27 — the spec caps zoom there because higher
+        /// Throws for z &gt; 27 -- the spec caps zoom there because higher
         /// values would require &gt; 64-bit ids.
         /// </summary>
         public static ulong ZxyToTileId(int z, uint x, uint y)

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using MapLibre.Unity.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -52,7 +53,7 @@ namespace MapLibre.Unity.Samples
             while (!_map.IsInitialized)
                 yield return null;
 
-            _font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            _font = SystemFontFallback.Resolve("Arial", 16);
             BuildUI();
             RegisterEvents();
         }
@@ -92,7 +93,7 @@ namespace MapLibre.Unity.Samples
                 _lastEventLabel.text = $"Last: {e.Type}";
         }
 
-        // MouseMove fires every frame — throttle log to avoid flooding
+        // MouseMove fires every frame -- throttle log to avoid flooding
         private int _moveLogCounter;
         private void OnMouseMove(MapEvent e)
         {

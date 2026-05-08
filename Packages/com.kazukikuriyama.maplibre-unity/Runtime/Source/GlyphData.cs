@@ -29,10 +29,10 @@ namespace MapLibre.Unity.Source
         /// <summary>Single-channel SDF bitmap (Alpha8). Null/empty for whitespace.</summary>
         public byte[] Bitmap;
 
-        /// <summary>Bitmap width in pixels — includes the 3px SDF padding.</summary>
+        /// <summary>Bitmap width in pixels -- includes the 3px SDF padding.</summary>
         public int Width;
 
-        /// <summary>Bitmap height in pixels — includes the 3px SDF padding.</summary>
+        /// <summary>Bitmap height in pixels -- includes the 3px SDF padding.</summary>
         public int Height;
 
         /// <summary>X offset of the bitmap top-left from the baseline origin.</summary>

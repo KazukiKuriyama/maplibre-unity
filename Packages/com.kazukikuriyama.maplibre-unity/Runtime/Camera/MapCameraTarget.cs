@@ -10,7 +10,7 @@ namespace MapLibre.Unity.CameraControl
     /// <remarks>
     /// Designed as a generic bridge to any external camera rig that drives a
     /// Unity Camera by referencing a target Transform. The most common use
-    /// case is Cinemachine — assign the GameObject hosting this component to
+    /// case is Cinemachine -- assign the GameObject hosting this component to
     /// <c>CinemachineCamera.Target.LookAtTarget</c> /
     /// <c>TrackingTarget</c> and the virtual camera will track a real-world
     /// coordinate. Animator-driven rigs, Timeline tracks, FPS controllers,

@@ -24,7 +24,7 @@ namespace MapLibre.Unity.Source.MBTiles
 
         /// <summary>
         /// Fetch the raw blob for (z, x, y). MBTiles stores `tile_row` flipped
-        /// (TMS scheme) — implementations are responsible for translating to /
+        /// (TMS scheme) -- implementations are responsible for translating to /
         /// from XYZ if the source schema is XYZ. Returns null when no row
         /// matches; the renderer treats that as "no data here", not an error.
         /// </summary>

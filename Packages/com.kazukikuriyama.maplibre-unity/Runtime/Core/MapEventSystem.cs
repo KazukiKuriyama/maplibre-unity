@@ -69,7 +69,7 @@ namespace MapLibre.Unity
                     list[i]?.Invoke(evt);
             }
 
-            // Layer-filtered handlers — only for events where Features lookup makes sense.
+            // Layer-filtered handlers -- only for events where Features lookup makes sense.
             if (_filteredHandlers.TryGetValue(evt.Type, out var fList) && fList.Count > 0 &&
                 evt.Point.HasValue)
             {
