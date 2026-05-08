@@ -40,6 +40,11 @@ jobs:
           - targetPlatform: StandaloneWindows64
             artifactName: windows
             archiveExt: zip
+          - targetPlatform: WebGL
+            artifactName: webgl
+            # WebGL output is a directory (index.html + Build/ + StreamingAssets/)
+            # — zip preserves it without symlink concerns.
+            archiveExt: zip
     steps:
       - name: Free disk space
         run: |
@@ -169,11 +174,12 @@ jobs:
             echo "https://github.com/${{ github.repository }}.git?path=Packages/com.kazukikuriyama.maplibre-unity#${GITHUB_REF_NAME}"
             echo '```'
             echo ''
-            echo '## Sample player build'
+            echo '## Sample player builds'
             echo ''
-            echo 'A pre-built Windows sample player is attached below. It boots into `HomeScene`, which links every demo scene listed in `EditorBuildSettings`. macOS / Linux users can install the package via UPM and run the samples directly in the Unity Editor.'
+            echo 'Pre-built sample players are attached below. They boot into `HomeScene`, which links every demo scene listed in `EditorBuildSettings`. macOS / Linux users can install the package via UPM and run the samples directly in the Unity Editor.'
             echo ''
             echo '- **Windows (x64)** — `maplibre-unity-windows-'"${VERSION}"'.zip`'
+            echo '- **WebGL** — `maplibre-unity-webgl-'"${VERSION}"'.zip` (experimental). Unzip and serve over HTTP — the bundled `index.html` is the entry point. Static hosting only; the build does not require COOP/COEP headers because WebAssembly threads are off.'
             echo 'RELEASE_NOTES_EOF'
           } >> "$GITHUB_OUTPUT"
 
