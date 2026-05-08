@@ -8,6 +8,12 @@
   href: Expressions.md
 - name: Camera Animation
   href: CameraAnimation.md
+- name: Extensibility
+  href: Extensibility.md
+- name: Offline Archives
+  href: OfflineArchives.md
+- name: Troubleshooting
+  href: Troubleshooting.md
 - name: API Reference
   href: api/
   homepage: api/index.md

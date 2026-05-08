@@ -8,31 +8,59 @@ once 1.0 is cut. The history here is curated from commit messages — see
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-08
+
 ### Changed
+- **Initial view priority now matches MapLibre GL JS** (Inspector >
+  style JSON > 0). Previously the order was reversed (style JSON >
+  Inspector), which conflicted with the upstream `new Map({zoom: 10,
+  style: ...})` convention where constructor options override style
+  defaults. The Inspector fields (`Initial Longitude` / `Latitude` /
+  `Zoom` / `Bearing` / `Pitch`) now serialize as `NaN` by default,
+  meaning "use the style JSON value." When set to a non-NaN value
+  they override the style. The `MapLibreMap` Inspector grew explicit
+  **Override** / **Use style** buttons and shows the effective
+  `style.<field>` value as a hint when no override is active. As part
+  of the same fix, `bearing` and `pitch` from the style JSON are now
+  applied (previously the runtime ignored `Style.Bearing` /
+  `Style.Pitch` entirely). All bundled sample scenes were updated so
+  the five `_initial*` fields are `.nan` — their initial view comes
+  from the corresponding `*Style.json`.
+- **WebGL marked as unsupported in README.** The previous claim that the
+  package "works on every Unity build target including WebGL" was wrong:
+  vector tile parsing / mesh building rely on `Task.Run` + `lock`, and
+  tile / glyph caches use synchronous `System.IO.File`, neither of which
+  works under the default WebGL single-threaded runtime. A "Supported
+  platforms" subsection was added under Requirements; PMTiles / MBTiles
+  / sample-table mentions of WebGL were removed accordingly. WebGL
+  support may be revisited later behind `#if UNITY_WEBGL` guards.
 - **Package source moved to `Packages/com.kazukikuriyama.maplibre-unity/`** (was
   `Assets/MapLibreUnity/`). The repository now follows the canonical
   Unity embedded-package layout — Unity loads the package
   automatically when this repo is opened in Unity Hub. UPM install URL
   is now
   `https://github.com/KazukiKuriyama/maplibre-unity.git?path=Packages/com.kazukikuriyama.maplibre-unity#<tag>`.
-- **Sample scenes are now opt-in.** They moved from `Samples/` to
-  `Samples~/` (the trailing `~` hides them from Unity's asset import
-  pipeline) and are exposed as a single "All Samples" group through
-  `package.json`'s `samples` array. End users import them via
-  Package Manager → MapLibre Unity → Samples → All Samples → Import.
+- **Sample scenes ship bundled with the package.** Located at
+  `Packages/com.kazukikuriyama.maplibre-unity/Samples/` (no trailing `~`),
+  they appear directly in the Project window — no Package Manager
+  "Import" step is needed and the path no longer carries a `<version>`
+  segment. The `samples` array was removed from `package.json`. End
+  users open `Packages/MapLibre Unity/Samples/Home/HomeScene.unity`
+  to launch the demo browser. Samples under `Packages/` are read-only;
+  copy a demo into `Assets/` to modify it.
 - **`MapLibre > Font Setup` default save path** changed from
   `Assets/MapLibreUnity/Fonts` to `Assets/MapLibre/Fonts` so the
   generated `TMP_FontAsset` lands in the user's project rather than
   inside the (read-only) UPM package.
 
 ### Internal
-- `Tests/EditMode/EnsureSamplesImported.cs` auto-imports the
-  "All Samples" sample on Editor startup and registers the imported
-  scenes in `EditorBuildSettings`. This keeps PlayMode smoke tests
-  working in CI and after a fresh clone, without requiring a manual
-  Package Manager click. The script is excluded from the UPM tarball
-  (`Tests/` is stripped by the release workflow), so it never runs in
-  end-user projects.
+- `Tests/EditMode/EnsureSamplesImported.cs` no longer triggers a UPM
+  sample import (the samples ship in-package now). It still registers
+  every sample scene in `EditorBuildSettings` on Editor startup, and
+  additionally prunes any stale `Assets/Samples/MapLibre Unity/<version>/...`
+  entries left over from the previous opt-in flow. The script is
+  excluded from the UPM tarball (`Tests/` is stripped by the release
+  workflow), so it never runs in end-user projects.
 
 ## [0.1.0] - 2026-04-28
 

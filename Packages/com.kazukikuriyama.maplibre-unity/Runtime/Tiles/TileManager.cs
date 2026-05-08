@@ -14,11 +14,21 @@ namespace MapLibre.Unity
         private readonly HashSet<CanonicalTileID> _fallbackTiles = new();
         private readonly Dictionary<CanonicalTileID, TileState> _tileStates = new();
 
+        // Tiles that left the required set this frame are not expired
+        // immediately — they sit here until ExpirationGraceFrames frames have
+        // elapsed without becoming required again. Prevents flicker during
+        // orbit / fast pan when frustum culling oscillates a tile in and out
+        // across consecutive frames; the entries are cleared the moment the
+        // tile is re-required, so no extra GameObject churn for stable views.
+        private readonly Dictionary<CanonicalTileID, int> _pendingExpiration = new();
+        private const int ExpirationGraceFrames = 30;
+
         public void UpdateVisibleTiles(HashSet<CanonicalTileID> requiredTiles)
         {
             _requiredTiles = requiredTiles;
 
-            // Request new tiles that aren't active yet
+            // Request new tiles that aren't active yet. Re-required tiles get
+            // their pending-expiration entry cleared so the grace timer resets.
             foreach (var tile in requiredTiles)
             {
                 if (!_activeTiles.Contains(tile))
@@ -27,6 +37,7 @@ namespace MapLibre.Unity
                     _tileStates[tile] = TileState.None;
                     OnTileNeeded?.Invoke(tile);
                 }
+                _pendingExpiration.Remove(tile);
             }
 
             // Determine which fallback (parent) tiles are still needed.
@@ -50,20 +61,47 @@ namespace MapLibre.Unity
                 }
             }
 
-            // Remove tiles that are no longer required AND no longer needed as fallbacks
-            var toRemove = new List<CanonicalTileID>();
+            // Schedule (or refresh) the grace deadline for tiles that just
+            // left the required set. Fallback tiles are kept indefinitely so
+            // their expiration entry is cleared too.
+            int currentFrame = UnityEngine.Time.frameCount;
             foreach (var tile in _activeTiles)
             {
-                if (!requiredTiles.Contains(tile) && !neededFallbacks.Contains(tile))
-                    toRemove.Add(tile);
+                bool stillRequired = requiredTiles.Contains(tile);
+                bool stillFallback = neededFallbacks.Contains(tile);
+                if (stillRequired || stillFallback)
+                {
+                    _pendingExpiration.Remove(tile);
+                }
+                else if (!_pendingExpiration.ContainsKey(tile))
+                {
+                    _pendingExpiration[tile] = currentFrame + ExpirationGraceFrames;
+                }
             }
 
-            foreach (var tile in toRemove)
+            // Expire tiles whose grace period has elapsed. We collect first
+            // because the loop body mutates _activeTiles via OnTileExpired
+            // listeners that may, in turn, observe _pendingExpiration.
+            List<CanonicalTileID> toRemove = null;
+            foreach (var kv in _pendingExpiration)
             {
-                _activeTiles.Remove(tile);
-                _fallbackTiles.Remove(tile);
-                _tileStates.Remove(tile);
-                OnTileExpired?.Invoke(tile);
+                if (currentFrame >= kv.Value)
+                {
+                    toRemove ??= new List<CanonicalTileID>();
+                    toRemove.Add(kv.Key);
+                }
+            }
+
+            if (toRemove != null)
+            {
+                foreach (var tile in toRemove)
+                {
+                    _activeTiles.Remove(tile);
+                    _fallbackTiles.Remove(tile);
+                    _tileStates.Remove(tile);
+                    _pendingExpiration.Remove(tile);
+                    OnTileExpired?.Invoke(tile);
+                }
             }
 
             _fallbackTiles.Clear();
@@ -99,6 +137,7 @@ namespace MapLibre.Unity
             _fallbackTiles.Clear();
             _tileStates.Clear();
             _requiredTiles.Clear();
+            _pendingExpiration.Clear();
         }
     }
 }

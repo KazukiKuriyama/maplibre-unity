@@ -84,25 +84,26 @@ namespace MapLibre.Unity.Editor
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("MapLibre Font Setup", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "OS にインストール済みのフォントから TMP_FontAsset (Dynamic SDF) を生成し、" +
-                "シーン内の MapLibreMap に自動設定します。",
+                "Generates a TMP_FontAsset (Dynamic SDF) from a font installed on " +
+                "this OS and auto-assigns it to MapLibreMap components in the scene.",
                 MessageType.Info);
 
             EditorGUILayout.Space(4);
 
             // --- License notice ---
             EditorGUILayout.HelpBox(
-                "フォントのライセンスについて\n\n" +
-                "ここに表示されるフォントは、お使いの OS にインストールされているものです。\n" +
-                "開発中のエディタ上での使用は問題ありませんが、アプリとして配布する場合は " +
-                "フォントのライセンスが再配布を許可しているか確認してください。\n\n" +
-                "例:\n" +
+                "Font licensing\n\n" +
+                "The fonts listed here are the ones installed on your OS.\n" +
+                "Using them in the Editor during development is fine, but if you ship " +
+                "the font with a built application, make sure its license permits " +
+                "redistribution.\n\n" +
+                "Examples:\n" +
                 "  Noto Sans JP, M PLUS, Source Han Sans, BIZ UDGothic\n" +
-                "    → SIL OFL ライセンス。商用・非商用問わず再配布可能\n" +
-                "  ヒラギノ角ゴ (macOS), 游ゴシック (Windows)\n" +
-                "    → OS 付属フォント。アプリへの同梱・再配布は不可\n\n" +
-                "配布アプリには Noto Sans JP 等の OFL フォントの使用を推奨します。\n" +
-                "詳細は THIRD_PARTY_NOTICES.md を参照してください。",
+                "    -> SIL OFL. Free to redistribute for commercial and non-commercial use.\n" +
+                "  Hiragino Kaku Gothic (macOS), Yu Gothic (Windows)\n" +
+                "    -> OS-bundled fonts. Bundling/redistributing them with an app is not permitted.\n\n" +
+                "We recommend OFL fonts such as Noto Sans JP for shipped builds.\n" +
+                "See THIRD_PARTY_NOTICES.md for details.",
                 MessageType.Warning);
 
             EditorGUILayout.Space(4);
@@ -115,8 +116,8 @@ namespace MapLibre.Unity.Editor
             {
                 EditorGUILayout.HelpBox(
                     _showAllFonts
-                        ? "OS にフォントが見つかりません。"
-                        : "CJK フォントが見つかりません。\"Show all fonts\" を有効にしてください。",
+                        ? "No fonts found on this OS."
+                        : "No CJK fonts found. Enable \"Show all fonts\" to list every font.",
                     MessageType.Warning);
                 return;
             }
@@ -205,13 +206,13 @@ namespace MapLibre.Unity.Editor
                 }
             }
 
-            string message = $"Font Asset を作成しました:\n{assetPath}";
+            string message = $"Created Font Asset:\n{assetPath}";
             if (assignedCount > 0)
-                message += $"\n\nシーン内の MapLibreMap {assignedCount} 個に自動設定しました。";
+                message += $"\n\nAuto-assigned to {assignedCount} MapLibreMap component(s) in the scene.";
             else if (maps.Length > 0)
-                message += "\n\nシーン内の MapLibreMap には既にフォントが設定済みです。";
+                message += "\n\nMapLibreMap components in the scene already have a font assigned.";
             else
-                message += "\n\nシーンに MapLibreMap が見つかりませんでした。\nInspector の Text > Symbol Font に手動で設定してください。";
+                message += "\n\nNo MapLibreMap component was found in the scene.\nAssign it manually under Inspector > Text > Symbol Font.";
 
             EditorUtility.DisplayDialog("MapLibre Font Setup", message, "OK");
 

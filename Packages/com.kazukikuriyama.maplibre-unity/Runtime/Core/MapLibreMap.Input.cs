@@ -237,7 +237,7 @@ namespace MapLibre.Unity
                 if (_mouseDownTracking && Vector2.Distance(_mouseDownPos, releasePos) <= ClickMaxDistance)
                 {
                     Vector2 clickPos = _mouseDownPos;
-                    if (!overUI)
+                    if (!overUI && !PrefabConsumedClickThisFrame)
                     {
                         FireEvent(MakePointerEvent(MapEventType.Click, clickPos));
 

@@ -178,8 +178,9 @@ namespace MapLibre.Unity.Rendering
             _iconMaterial = iconMaterial;
 
             // Wire up TMP's per-glyph fallback chain so labels mixing scripts
-            // (e.g. "Tokyo 東京") render correctly even when the primary font
-            // lacks some glyphs. fallbackFontAssetTable is searched in order.
+            // (e.g. Latin and CJK in the same string) render correctly even
+            // when the primary font lacks some glyphs. fallbackFontAssetTable
+            // is searched in order.
             if (_fontAsset != null && fontFallbacks != null && fontFallbacks.Length > 0)
             {
                 if (_fontAsset.fallbackFontAssetTable == null)
@@ -663,8 +664,11 @@ namespace MapLibre.Unity.Rendering
             var basePlate = Quaternion.Euler(-90f, 0f, 0f);
             var bearingY = Quaternion.Euler(0f, bearingDeg, 0f);
             // Tilt the page backward by pitchDeg so it keeps facing the camera as the
-            // camera pitches forward (pitch=0 → no extra tilt, page stays on ground).
-            var pitchTilt = Quaternion.Euler(pitchDeg, 0f, 0f);
+            // camera pitches forward. Camera rotation is Euler(90-pitch, bearing, 0):
+            // its forward is (0, -sin(pitch), cos(pitch)), so the label normal must be
+            // (0, sin(pitch), -cos(pitch)) to face it. Starting from basePlate (normal
+            // +Y), that requires rotating by -pitch around X — not +pitch.
+            var pitchTilt = Quaternion.Euler(-pitchDeg, 0f, 0f);
             var viewportRotOnly = bearingY * basePlate;
             var viewportPitchOnly = pitchTilt * basePlate;
             var viewportFull = bearingY * pitchTilt * basePlate;

@@ -233,7 +233,12 @@ namespace MapLibre.Unity
         private async Awaitable LoadGeoJsonSourceAndRefreshAsync(GeoJsonSource source)
         {
             await source.LoadDataAsync();
-            _needsTileUpdate = true;
+            // RefreshTiles (not _needsTileUpdate) so tiles already added to
+            // _activeTiles before data was ready get re-requested. Setting only
+            // _needsTileUpdate would skip them — UpdateVisibleTiles fires
+            // OnTileNeeded for new tile IDs only — leaving them stuck in Error
+            // state until the user pans/zooms the active set.
+            RefreshTiles();
         }
 
         private async Awaitable LoadVectorSourceTileJSONAsync(string id, VectorTileSource source, SourceDefinition def)
@@ -249,7 +254,7 @@ namespace MapLibre.Unity
             {
                 FireError($"TileJSON fetch failed for '{id}': {e.Message}", id);
             }
-            _needsTileUpdate = true;
+            RefreshTiles();
         }
 
         private async Awaitable LoadRasterSourceTileJSONAsync(string id, RasterTileSource source, SourceDefinition def)
@@ -265,7 +270,7 @@ namespace MapLibre.Unity
             {
                 FireError($"TileJSON fetch failed for '{id}': {e.Message}", id);
             }
-            _needsTileUpdate = true;
+            RefreshTiles();
         }
 
         /// <summary>

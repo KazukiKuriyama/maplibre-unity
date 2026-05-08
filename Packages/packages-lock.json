@@ -10,6 +10,16 @@
       },
       "hash": "73eb27aeccfa8e0676eaf3304136e9b85953d913"
     },
+    "com.kazukikuriyama.maplibre-unity": {
+      "version": "file:com.kazukikuriyama.maplibre-unity",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.inputsystem": "1.18.0",
+        "com.unity.ugui": "2.0.0"
+      }
+    },
     "com.unity.burst": {
       "version": "1.8.28",
       "depth": 2,
@@ -141,6 +151,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.settings-manager": {
+      "version": "2.1.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.shadergraph": {
       "version": "17.3.0",
       "depth": 1,
@@ -167,6 +184,16 @@
       "dependencies": {
         "com.unity.test-framework": "1.1.33",
         "com.unity.modules.jsonserialize": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.testtools.codecoverage": {
+      "version": "1.3.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.4.5",
+        "com.unity.settings-manager": "2.0.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -200,16 +227,6 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
-    },
-    "com.kazukikuriyama.maplibre-unity": {
-      "version": "file:com.kazukikuriyama.maplibre-unity",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.2.1",
-        "com.unity.inputsystem": "1.18.0",
-        "com.unity.ugui": "2.0.0"
-      }
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

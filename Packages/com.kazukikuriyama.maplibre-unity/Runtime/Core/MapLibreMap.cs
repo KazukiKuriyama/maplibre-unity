@@ -40,12 +40,12 @@ namespace MapLibre.Unity
         [SerializeField] private TextAsset _styleFile;
         [SerializeField] [TextArea(5, 20)] private string _styleJson;
 
-        [Header("Initial View (fallback when style JSON has no center/zoom)")]
-        [SerializeField] private double _initialLongitude = 0;
-        [SerializeField] private double _initialLatitude = 0;
-        [SerializeField] private float _initialZoom = 0f;
-        [SerializeField] private float _initialBearing = 0f;
-        [SerializeField] private float _initialPitch = 0f;
+        [Header("Initial View (overrides style JSON when set; NaN = use style)")]
+        [SerializeField] private double _initialLongitude = double.NaN;
+        [SerializeField] private double _initialLatitude = double.NaN;
+        [SerializeField] private float _initialZoom = float.NaN;
+        [SerializeField] private float _initialBearing = float.NaN;
+        [SerializeField] private float _initialPitch = float.NaN;
 
         [Header("Performance")]
         [SerializeField] private int _tileCacheSize = 256;
@@ -61,23 +61,29 @@ namespace MapLibre.Unity
 
         [Header("References")]
         [SerializeField] private UnityEngine.Camera _mapCamera;
-        [SerializeField] private Shader _rasterTileShader;
-        [SerializeField] private Shader _backgroundShader;
-        [SerializeField] private Shader _fillShader;
-        [SerializeField] private Shader _fillPatternShader;
-        [SerializeField] private Shader _lineShader;
-        [SerializeField] private Shader _linePatternShader;
-        [SerializeField] private Shader _lineGradientShader;
-        [SerializeField] private Shader _backgroundPatternShader;
-        [SerializeField] private Shader _circleShader;
-        [SerializeField] private Shader _fillExtrusionShader;
-        [SerializeField] private Shader _fillExtrusionPatternShader;
-        [SerializeField] private Shader _skyShader;
-        [SerializeField] private Shader _heatmapShader;
-        [SerializeField] private Shader _hillshadeShader;
-        [SerializeField] private Shader _terrainShader;
-        [SerializeField] private Shader _iconShader;
         [SerializeField, NotNull] private PanelSettings _panelSettings;
+
+        // Built-in layer shaders are loaded via Shader.Find() in InitializeAsync().
+        // Build inclusion is guaranteed by ProjectSettings/GraphicsSettings.asset
+        // (m_AlwaysIncludedShaders); GraphicsSettingsShaderTests catches drift.
+        // Not exposed in Inspector — matches MapLibre GL JS where rendering
+        // primitives are internal. Custom rendering goes through ICustomLayer.
+        private Shader _rasterTileShader;
+        private Shader _backgroundShader;
+        private Shader _fillShader;
+        private Shader _fillPatternShader;
+        private Shader _lineShader;
+        private Shader _linePatternShader;
+        private Shader _lineGradientShader;
+        private Shader _backgroundPatternShader;
+        private Shader _circleShader;
+        private Shader _fillExtrusionShader;
+        private Shader _fillExtrusionPatternShader;
+        private Shader _skyShader;
+        private Shader _heatmapShader;
+        private Shader _hillshadeShader;
+        private Shader _terrainShader;
+        private Shader _iconShader;
 
         [Header("Text")]
         [Tooltip("TMP_FontAsset for symbol labels. Assign a font that covers the required glyphs (e.g. Noto Sans JP for Japanese). Falls back to TMP default if unset.")]
@@ -131,6 +137,13 @@ namespace MapLibre.Unity
 
         private bool _isInitialized;
         private bool _needsTileUpdate;
+        // Set whenever AddLayer is called with triggerRefresh:false. Update()
+        // consumes the flag once per frame and runs RefreshTiles, so a batch
+        // of AddLayer(false) calls in the same Start/coroutine still ends up
+        // dispatching tiles to the new layers without the caller having to
+        // remember a manual RefreshTiles() at the end. A user-issued
+        // RefreshTiles clears the flag so the safety-net never double-fires.
+        private bool _pendingLayerRefresh;
         private readonly List<string> _pendingAttributions = new();
         private int _effectiveMinZoom = 22;
         private int _effectiveMaxZoom = 0;
@@ -275,13 +288,19 @@ namespace MapLibre.Unity
             }
 
             // 2. Initialize map state
-            // Priority: Style JSON > Inspector (fallback).
-            // Matches MapLibre GL JS where style center/zoom are the primary defaults.
-            var center = Style.Center ?? new LngLat(_initialLongitude, _initialLatitude);
-            float zoom = Style.Zoom ?? _initialZoom;
+            // Priority: Inspector override > Style JSON > 0 (default).
+            // Matches MapLibre GL JS where constructor options override style defaults.
+            // An Inspector field is "set" when its value is not NaN.
+            bool centerOverridden = !double.IsNaN(_initialLongitude) && !double.IsNaN(_initialLatitude);
+            var center = centerOverridden
+                ? new LngLat(_initialLongitude, _initialLatitude)
+                : Style.Center ?? new LngLat(0, 0);
+            float zoom = !float.IsNaN(_initialZoom) ? _initialZoom : (Style.Zoom ?? 0f);
+            float bearing = !float.IsNaN(_initialBearing) ? _initialBearing : (Style.Bearing ?? 0f);
+            float pitch = !float.IsNaN(_initialPitch) ? _initialPitch : (Style.Pitch ?? 0f);
 
             State = new MapState();
-            State.SetState(center, zoom, _initialBearing, _initialPitch);
+            State.SetState(center, zoom, bearing, pitch);
             State.OnStateChanged += OnMapStateChanged;
 
             // 3. Initialize sources
@@ -389,7 +408,7 @@ namespace MapLibre.Unity
                 _terrainManager = new Terrain.TerrainManager();
                 _terrainManager.Initialize(Style.Terrain.Source, demSrc.Encoding, demSrc.MaxZoom);
                 _terrainManager.Exaggeration =
-                    Style.Terrain.ResolveExaggeration(new Expressions.EvaluationContext(_initialZoom));
+                    Style.Terrain.ResolveExaggeration(new Expressions.EvaluationContext(State.Zoom));
             }
 
             _tilePool = new TileObjectPool(transform, _rasterTileMaterial, _tilePoolInitialSize);
@@ -448,7 +467,13 @@ namespace MapLibre.Unity
                     _inputHandler = _mapCamera.gameObject.AddComponent<MapInputHandler>();
 
                 _inputHandler.Initialize(State, _mapCamera);
-                _inputHandler.SetPointerOverUICheck(IsPointerOverOverlayUI);
+                // Compose the camera-suppression check so a draggable prefab
+                // under the cursor blocks map pan / zoom the same way a UITK
+                // overlay does. Non-draggable prefabs do not block — clicks
+                // simply route to the prefab and the map's own click event is
+                // suppressed for that frame inside HandlePointerEvents.
+                _inputHandler.SetPointerOverUICheck(pos =>
+                    IsPointerOverOverlayUI(pos) || IsPointerOverDraggablePrefab(pos));
                 _cameraController.UpdateFromMapState(State);
 
                 // 6b. Initialize animator
@@ -553,6 +578,26 @@ namespace MapLibre.Unity
         {
             if (!_isInitialized) return;
 
+            // Safety net for AddLayer(triggerRefresh:false) batches whose
+            // caller forgot the trailing RefreshTiles. Coalesces every
+            // AddLayer(false) call in the previous frame into a single
+            // RefreshTiles here, so layers always become visible in the
+            // following frame instead of waiting for a pan/zoom. Manual
+            // RefreshTiles invocations clear the flag, so the explicit
+            // batch pattern still produces exactly one refresh.
+            if (_pendingLayerRefresh)
+            {
+                _pendingLayerRefresh = false;
+                RefreshTiles();
+            }
+
+            // Coalesced glyph-load refresh runs *before* anything else this
+            // frame. The flag is set inside FetchRange when the coroutine
+            // completes synchronously on a disk-cache hit; deferring the
+            // RefreshTiles call to here keeps it out of the in-flight
+            // SymbolRenderer.ShowTile path.
+            DrainPendingGlyphRefresh();
+
             _mapRenderer?.ProcessMeshQueues();
 
             // Always update positions/collision every frame so newly created
@@ -579,8 +624,11 @@ namespace MapLibre.Unity
                 _needsTileUpdate = false;
             }
 
+            UpdatePrefabSources();
+
             HandleResize();
             ProcessEvents();
+            UpdatePrefabPointer();
             HandlePointerEvents();
             HandleTouchEvents();
         }
@@ -933,6 +981,7 @@ namespace MapLibre.Unity
                 source.Dispose();
             foreach (var source in _imageSources.Values)
                 source.Dispose();
+            DisposePrefabSources();
 
             _mapRenderer?.Dispose();
 

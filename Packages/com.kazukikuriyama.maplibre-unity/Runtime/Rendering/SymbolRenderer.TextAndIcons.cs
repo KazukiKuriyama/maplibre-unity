@@ -252,7 +252,7 @@ namespace MapLibre.Unity.Rendering
             tmp.fontSize = TmpFontSize;
             tmp.isOrthographic = true; // Prevent TMP's 0.1x perspective scale factor
             tmp.alignment = TextAlignmentOptions.Center;
-            tmp.enableWordWrapping = false;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
             tmp.overflowMode = TextOverflowModes.Overflow;
             tmp.color = new Color(color.r, color.g, color.b, color.a * opacity);
 

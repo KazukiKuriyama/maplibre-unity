@@ -27,6 +27,14 @@ Shader "MapLibre/Circle"
 
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
+        // Pixel depth on a viewport-aligned billboard is fixed at the anchor's
+        // depth, but the bottom half projects to a screen position where nearby
+        // ground tiles already wrote nearer depth. With ZTest LEqual the
+        // billboard's lower half loses the depth test and looks "buried" under
+        // the map. MapLibre GL JS resolves this in WebGL via painter's
+        // algorithm (no depth test); ZTest Always reproduces that behaviour
+        // — circles render purely by render-queue order.
+        ZTest Always
         Cull Off
 
         Pass

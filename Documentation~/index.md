@@ -6,8 +6,17 @@ engine. Renders raster and vector tiles, runs the MapLibre style spec
 camera-control API surface as the upstream library — `easeTo`, `flyTo`,
 `fitBounds`, `setBearing`, `queryRenderedFeatures`, controls, and more.
 
-No native plugins — the entire pipeline runs on the managed Unity runtime,
-so it works on every platform Unity targets, including WebGL.
+No native plugins — the entire pipeline runs on the managed Unity runtime.
+
+**Verified platform:** Standalone (Windows / macOS / Linux) — the
+only target the maintainer regularly builds and runs against.
+**Untested:** iOS / Android (expected to work, no device verification yet).
+**Not supported:** WebGL — vector tile parsing relies on `Task.Run`
+and the tile/glyph caches use synchronous `System.IO.File` APIs,
+neither of which works under the default WebGL single-threaded
+runtime. See the README's
+[Supported platforms](https://github.com/KazukiKuriyama/maplibre-unity#supported-platforms)
+section for details.
 
 ## Quick links
 
@@ -19,6 +28,12 @@ so it works on every platform Unity targets, including WebGL.
   and the `feature-state` API.
 - **[Camera animation](CameraAnimation.md)** — `easeTo`, `flyTo`,
   `fitBounds`, and the awaitable variants.
+- **[Extensibility](Extensibility.md)** — `ICustomLayer`,
+  `ICustomRasterSource`, `ICustomVectorSource`, `AddImage`.
+- **[Offline tile archives](OfflineArchives.md)** — PMTiles and
+  MBTiles archive readers.
+- **[Troubleshooting](Troubleshooting.md)** — common rendering, tile,
+  expression, and build-time problems with first-step fixes.
 - **[API Reference](api/)** — generated from the Runtime / Editor source
   XML doc-comments. Use the search box (top right) to jump to a type.
 - **[GitHub repository](https://github.com/KazukiKuriyama/maplibre-unity)** —
@@ -46,9 +61,13 @@ already know:
 
 ## Project status
 
-Most of the MapLibre style spec is implemented (see the [Phase 1–11
-roadmap](https://github.com/KazukiKuriyama/maplibre-unity#status)).
-Remaining gaps are tracked as GitHub issues. PRs are welcome.
+Most of the MapLibre style spec is implemented. The
+[Feature Comparison table](https://github.com/KazukiKuriyama/maplibre-unity#feature-comparison)
+in the README is the running source of truth for what is supported
+relative to MapLibre Native and MapLibre GL JS, and the
+[CHANGELOG](https://github.com/KazukiKuriyama/maplibre-unity/blob/main/CHANGELOG.md)
+records what has landed in each release. Remaining gaps are tracked as
+GitHub issues. PRs are welcome.
 
 ## License
 

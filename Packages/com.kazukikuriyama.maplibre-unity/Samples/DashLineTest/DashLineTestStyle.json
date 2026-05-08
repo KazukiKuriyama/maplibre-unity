@@ -1,0 +1,151 @@
+{
+    "version": 8,
+    "name": "Dash Line Test",
+    "center": [139.7670, 35.6814],
+    "zoom": 9,
+    "sources": {
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet",
+            "attribution": "OpenMapTiles / OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#f0ede8"
+            }
+        },
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "water",
+            "paint": {
+                "fill-color": "#a0c8f0",
+                "fill-opacity": 1.0
+            }
+        },
+        {
+            "id": "park",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "park",
+            "paint": {
+                "fill-color": "#c8e6b8",
+                "fill-opacity": 0.5
+            }
+        },
+        {
+            "id": "building",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "building",
+            "paint": {
+                "fill-color": "#d9d0c9",
+                "fill-opacity": 0.6
+            }
+        },
+        {
+            "id": "road-casing",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "paint": {
+                "line-color": "#c0c0c0",
+                "line-width": 4,
+                "line-opacity": 0.5
+            }
+        },
+        {
+            "id": "road-solid",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["==", "class", "motorway"],
+            "paint": {
+                "line-color": "#e8a848",
+                "line-width": 3,
+                "line-opacity": 1.0
+            }
+        },
+        {
+            "id": "road-dashed",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["==", "class", "secondary"],
+            "paint": {
+                "line-color": "#4080d0",
+                "line-width": 2.5,
+                "line-opacity": 1.0,
+                "line-dasharray": [2, 1]
+            }
+        },
+        {
+            "id": "road-dotted",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["==", "class", "tertiary"],
+            "paint": {
+                "line-color": "#d04080",
+                "line-width": 2,
+                "line-opacity": 1.0,
+                "line-dasharray": [1, 1]
+            }
+        },
+        {
+            "id": "road-dash-dot",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["==", "class", "service"],
+            "paint": {
+                "line-color": "#40b060",
+                "line-width": 1.5,
+                "line-opacity": 1.0,
+                "line-dasharray": [3, 1, 1, 1]
+            }
+        },
+        {
+            "id": "railway-dashed",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["==", "class", "rail"],
+            "paint": {
+                "line-color": "#333333",
+                "line-width": 1.5,
+                "line-opacity": 0.8,
+                "line-dasharray": [4, 2]
+            }
+        },
+        {
+            "id": "boundary-dashed",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "boundary",
+            "paint": {
+                "line-color": "#9e6eab",
+                "line-width": 2,
+                "line-opacity": 0.8,
+                "line-dasharray": [3, 1, 1, 1]
+            }
+        },
+        {
+            "id": "waterway-dashed",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "waterway",
+            "paint": {
+                "line-color": "#5090d0",
+                "line-width": 2,
+                "line-opacity": 1.0,
+                "line-dasharray": [3, 2]
+            }
+        }
+    ]
+}

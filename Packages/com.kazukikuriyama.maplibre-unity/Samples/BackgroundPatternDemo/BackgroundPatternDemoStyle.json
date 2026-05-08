@@ -1,0 +1,16 @@
+{
+    "version": 8,
+    "name": "Background Pattern Demo",
+    "center": [139.7670, 35.6814],
+    "zoom": 9,
+    "sources": {},
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#e0eaf2"
+            }
+        }
+    ]
+}

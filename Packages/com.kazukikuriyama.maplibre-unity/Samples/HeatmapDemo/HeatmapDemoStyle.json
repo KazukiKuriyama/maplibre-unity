@@ -1,0 +1,114 @@
+{
+    "version": 8,
+    "name": "Heatmap Layer Demo",
+    "center": [139.7670, 35.6814],
+    "zoom": 7,
+    "sources": {
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet",
+            "attribution": "© OpenMapTiles © OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#1a1a2e"
+            }
+        },
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "water",
+            "paint": {
+                "fill-color": "#0f3460",
+                "fill-opacity": 0.6
+            }
+        },
+        {
+            "id": "road",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "paint": {
+                "line-color": "#2a2a4a",
+                "line-width": 0.8,
+                "line-opacity": 0.5
+            }
+        },
+        {
+            "id": "poi-heatmap",
+            "type": "heatmap",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "maxzoom": 18,
+            "paint": {
+                "heatmap-weight": [
+                    "interpolate", ["linear"], ["get", "rank"],
+                    1, 1,
+                    5, 0.8,
+                    10, 0.5,
+                    20, 0.2
+                ],
+                "heatmap-intensity": 1.5,
+                "heatmap-color": [
+                    "interpolate", ["linear"], ["heatmap-density"],
+                    0, "rgba(0,0,0,0)",
+                    0.1, "rgba(0,0,255,0.4)",
+                    0.3, "rgba(0,255,255,0.6)",
+                    0.5, "rgba(0,255,0,0.7)",
+                    0.7, "rgba(255,255,0,0.8)",
+                    1, "rgba(255,0,0,1)"
+                ],
+                "heatmap-radius": [
+                    "interpolate", ["linear"], ["zoom"],
+                    10, 30,
+                    16, 80
+                ],
+                "heatmap-opacity": [
+                    "interpolate", ["linear"], ["zoom"],
+                    12, 0.8,
+                    18, 0.6
+                ]
+            }
+        },
+        {
+            "id": "mountain-heatmap",
+            "type": "heatmap",
+            "source": "openmaptiles",
+            "source-layer": "mountain_peak",
+            "maxzoom": 16,
+            "paint": {
+                "heatmap-weight": [
+                    "interpolate", ["linear"], ["get", "ele"],
+                    0, 0,
+                    500, 0.5,
+                    2000, 1
+                ],
+                "heatmap-intensity": 1.2,
+                "heatmap-color": [
+                    "interpolate", ["linear"], ["heatmap-density"],
+                    0, "rgba(0,0,0,0)",
+                    0.1, "rgba(70,30,0,0.3)",
+                    0.3, "rgba(139,69,19,0.5)",
+                    0.5, "rgba(205,133,63,0.7)",
+                    0.7, "rgba(255,200,100,0.8)",
+                    1, "rgba(255,255,200,1)"
+                ],
+                "heatmap-radius": [
+                    "interpolate", ["linear"], ["zoom"],
+                    8, 40,
+                    14, 100
+                ],
+                "heatmap-opacity": [
+                    "interpolate", ["linear"], ["zoom"],
+                    10, 0.7,
+                    16, 0.4
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,100 @@
+name: Bug report
+description: Report a reproducible defect.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        - **Security issue?** Stop and use the
+          [private vulnerability reporting](https://github.com/KazukiKuriyama/maplibre-unity/security/advisories/new)
+          form instead — see [SECURITY.md](../SECURITY.md).
+        - **WebGL?** WebGL is not supported (see README → Supported platforms).
+          Reports for iOS / Android are welcome but the platforms are untested.
+
+  - type: input
+    id: unity-version
+    attributes:
+      label: Unity version
+      description: Output of `Unity.exe -version` or the splash screen.
+      placeholder: "6000.3.10f1"
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: MapLibre Unity version
+      description: Tag, commit SHA, or `package.json` version installed.
+      placeholder: "v0.1.0 / main@abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Target platform
+      options:
+        - Editor (macOS)
+        - Editor (Windows)
+        - Editor (Linux)
+        - Standalone (Windows)
+        - Standalone (macOS)
+        - Standalone (Linux)
+        - iOS (untested upstream)
+        - Android (untested upstream)
+        - Other (please describe in repro)
+    validations:
+      required: true
+
+  - type: input
+    id: urp-version
+    attributes:
+      label: URP version
+      placeholder: "17.3.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: |
+        Minimal scene / `style.json` / code snippet that reproduces the issue.
+        If the bug only manifests with a specific tile server, mention which.
+      placeholder: |
+        1. Add `MapLibreMap` to a fresh scene
+        2. Set Style URL to ...
+        3. Press Play
+        4. Observed: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. actual behavior
+      description: |
+        If the feature has a MapLibre GL JS counterpart, link the upstream doc
+        / playground entry that shows the expected behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Unity Console output
+      description: Relevant errors / warnings (paste as plain text — no screenshots of stack traces).
+      render: text
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I tested with the latest tagged release (or main) before reporting.
+          required: true

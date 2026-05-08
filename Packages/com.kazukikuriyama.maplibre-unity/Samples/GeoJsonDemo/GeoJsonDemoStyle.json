@@ -1,0 +1,274 @@
+{
+    "version": 8,
+    "name": "GeoJSON Demo",
+    "center": [139.7670, 35.6814],
+    "zoom": 9,
+    "sources": {
+        "basemap": {
+            "type": "raster",
+            "tiles": [
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "attribution": "© OpenStreetMap contributors"
+        },
+        "geojson-areas": {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "id": 1,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Imperial Palace",
+                            "name_ja": "皇居",
+                            "type": "park"
+                        },
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [139.7480, 35.6852],
+                                [139.7560, 35.6852],
+                                [139.7560, 35.6900],
+                                [139.7530, 35.6920],
+                                [139.7480, 35.6900],
+                                [139.7480, 35.6852]
+                            ]]
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Shinjuku Gyoen",
+                            "name_ja": "新宿御苑",
+                            "type": "park"
+                        },
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [139.7080, 35.6830],
+                                [139.7150, 35.6830],
+                                [139.7150, 35.6870],
+                                [139.7080, 35.6870],
+                                [139.7080, 35.6830]
+                            ]]
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Ueno Park",
+                            "name_ja": "上野公園",
+                            "type": "park"
+                        },
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [139.7700, 35.7130],
+                                [139.7780, 35.7130],
+                                [139.7780, 35.7190],
+                                [139.7700, 35.7190],
+                                [139.7700, 35.7130]
+                            ]]
+                        }
+                    }
+                ]
+            }
+        },
+        "geojson-routes": {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "id": 1,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Yamanote Line (partial)",
+                            "type": "rail"
+                        },
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [139.7671, 35.6812],
+                                [139.7584, 35.6753],
+                                [139.7456, 35.6586],
+                                [139.7379, 35.6557],
+                                [139.7304, 35.6619],
+                                [139.7006, 35.6896],
+                                [139.7003, 35.6917],
+                                [139.7020, 35.6938],
+                                [139.7101, 35.6991],
+                                [139.7217, 35.7078],
+                                [139.7310, 35.7120],
+                                [139.7451, 35.7136],
+                                [139.7595, 35.7133],
+                                [139.7671, 35.7101],
+                                [139.7741, 35.7141],
+                                [139.7831, 35.7218],
+                                [139.7709, 35.7270],
+                                [139.7671, 35.6812]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "geojson-points": {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "id": 1,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Tokyo Station",
+                            "name_ja": "東京駅",
+                            "type": "station"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.7671, 35.6812]
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Shibuya Station",
+                            "name_ja": "渋谷駅",
+                            "type": "station"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.7016, 35.6580]
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Shinjuku Station",
+                            "name_ja": "新宿駅",
+                            "type": "station"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.7003, 35.6896]
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Ikebukuro Station",
+                            "name_ja": "池袋駅",
+                            "type": "station"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.7101, 35.7296]
+                        }
+                    },
+                    {
+                        "id": 5,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Ueno Station",
+                            "name_ja": "上野駅",
+                            "type": "station"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.7771, 35.7141]
+                        }
+                    },
+                    {
+                        "id": 6,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Tokyo Tower",
+                            "name_ja": "東京タワー",
+                            "type": "landmark"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.7454, 35.6586]
+                        }
+                    },
+                    {
+                        "id": 7,
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Tokyo Skytree",
+                            "name_ja": "東京スカイツリー",
+                            "type": "landmark"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [139.8107, 35.7101]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "layers": [
+        {
+            "id": "raster-base",
+            "type": "raster",
+            "source": "basemap"
+        },
+        {
+            "id": "park-fill",
+            "type": "fill",
+            "source": "geojson-areas",
+            "source-layer": "geojson-areas",
+            "paint": {
+                "fill-color": "#4CAF50",
+                "fill-opacity": 0.35
+            }
+        },
+        {
+            "id": "park-outline",
+            "type": "line",
+            "source": "geojson-areas",
+            "source-layer": "geojson-areas",
+            "paint": {
+                "line-color": "#2E7D32",
+                "line-width": 2,
+                "line-opacity": 0.8
+            }
+        },
+        {
+            "id": "rail-line",
+            "type": "line",
+            "source": "geojson-routes",
+            "source-layer": "geojson-routes",
+            "paint": {
+                "line-color": "#E91E63",
+                "line-width": 3,
+                "line-opacity": 0.8
+            }
+        },
+        {
+            "id": "station-labels",
+            "type": "symbol",
+            "source": "geojson-points",
+            "source-layer": "geojson-points",
+            "layout": {
+                "text-field": "{name}",
+                "text-size": 14
+            },
+            "paint": {
+                "text-color": "#1A237E",
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5
+            }
+        }
+    ]
+}

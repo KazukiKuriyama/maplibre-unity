@@ -1,0 +1,21 @@
+{
+    "version": 8,
+    "name": "PMTiles Demo Base",
+    "center": [11.255, 43.770],
+    "zoom": 9,
+    "sources": {
+        "basemap": {
+            "type": "raster",
+            "tiles": [
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "attribution": "© OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        { "id": "background", "type": "background", "paint": { "background-color": "#e8e8e8" } },
+        { "id": "raster-base", "type": "raster", "source": "basemap" }
+    ]
+}
+

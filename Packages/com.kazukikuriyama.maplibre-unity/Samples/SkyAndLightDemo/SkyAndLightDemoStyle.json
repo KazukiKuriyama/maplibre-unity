@@ -1,0 +1,38 @@
+{
+    "version": 8,
+    "name": "Sky and Light Demo Base",
+    "center": [139.7670, 35.6814],
+    "zoom": 14,
+    "sources": {
+        "basemap": {
+            "type": "raster",
+            "tiles": [
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "attribution": "© OpenStreetMap contributors"
+        },
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet",
+            "attribution": "© OpenMapTiles © OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        { "id": "background", "type": "background", "paint": { "background-color": "#e8e8e8" } },
+        { "id": "raster-base", "type": "raster", "source": "basemap" },
+        {
+            "id": "building-3d",
+            "type": "fill-extrusion",
+            "source": "openmaptiles",
+            "source-layer": "building",
+            "minzoom": 13,
+            "paint": {
+                "fill-extrusion-color": "#cfcabf",
+                "fill-extrusion-height": ["coalesce", ["get", "render_height"], 10],
+                "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
+                "fill-extrusion-opacity": 0.92
+            }
+        }
+    ]
+}

@@ -16,7 +16,10 @@ namespace MapLibre.Unity.Expressions
         /// Parse a style property value into an Expression.
         /// Handles literals, legacy stop functions, and expression arrays.
         /// </summary>
-        /// <param name="value">Raw value from Newtonsoft deserialization (string, long, double, bool, JArray, JObject)</param>
+        /// <param name="value">Style property value. Accepts both Newtonsoft tokens
+        /// (JArray / JObject / JValue) from style-JSON deserialization and plain
+        /// C# values (string, primitives, object[] / List&lt;object&gt;) from runtime
+        /// AddLayer calls.</param>
         /// <param name="isColor">If true, string values are parsed as colors</param>
         public static Expression Parse(object value, bool isColor = false)
         {
@@ -32,6 +35,16 @@ namespace MapLibre.Unity.Expressions
             if (value is double d) return new LiteralExpression((float)d);
             if (value is bool b) return new LiteralExpression(b);
 
+            // Runtime AddLayer / SetPaintProperty often hands us plain C# arrays
+            // (e.g. paint["fill-color"] = new object[] { "interpolate", ... }).
+            // Round-trip through Newtonsoft so nested arrays become JArrays and
+            // the existing JArray path handles operator dispatch correctly.
+            // Without this, the array silently becomes a literal and color/number
+            // expressions evaluate to their default (black for colors).
+            // Use IList rather than IEnumerable so JObject / Dictionary fall through.
+            if (value is System.Collections.IList)
+                return ParseArray(JArray.FromObject(value), isColor);
+
             try { return new LiteralExpression(Convert.ToSingle(value)); }
             catch { return new LiteralExpression(value); }
         }
@@ -46,10 +59,25 @@ namespace MapLibre.Unity.Expressions
 
             string op = arr[0].ToString();
 
-            // Detect legacy vs expression filter:
-            // Legacy: ["==", "property_name", value] where second arg is string
-            // Expression: ["==", ["get", "prop"], value] where second arg is array
-            if (IsComparisonOp(op) && arr.Count >= 3 && arr[1] is JValue)
+            // Legacy-only operators (no expression equivalent).
+            // `!has` / `!in` / `none` exist only in legacy filter syntax.
+            if (op is "!has" or "!in" or "none")
+            {
+                return ParseLegacyFilter(arr);
+            }
+
+            // `all` / `any` / `!` exist in both forms, but in filter context they
+            // wrap nested filters — recurse through the legacy path which itself
+            // reroutes each child via ParseFilter.
+            if (op is "all" or "any" or "!")
+            {
+                return ParseLegacyFilter(arr);
+            }
+
+            // Comparison / has / in: legacy form has a property string at arg 1,
+            // expression form has a nested expression there.
+            if ((IsComparisonOp(op) || op is "has" or "in")
+                && arr.Count >= 2 && arr[1] is JValue)
             {
                 return ParseLegacyFilter(arr);
             }
@@ -154,18 +182,47 @@ namespace MapLibre.Unity.Expressions
             }
         }
 
+        // Operator names recognised by ParseExpression. Used by ParseArray to
+        // distinguish ["interpolate", ...] (an expression) from
+        // ["Open Sans Regular", "Arial Unicode MS"] (a literal string-array
+        // value used by text-font). Without this check, a literal string-first
+        // array would be treated as an expression with an unknown operator and
+        // collapse to LiteralExpression(null), silently dropping the data.
+        private static readonly HashSet<string> KnownOperators = new()
+        {
+            "literal", "zoom", "get", "has", "geometry-type", "heatmap-density",
+            "line-progress", "feature-state", "id",
+            "interpolate", "interpolate-hcl", "interpolate-lab",
+            "step", "match", "case", "coalesce",
+            "all", "any", "!",
+            "==", "!=", "<", ">", "<=", ">=",
+            "in", "concat", "downcase", "upcase",
+            "to-string", "to-number", "length",
+            "boolean", "string", "number",
+            "+", "-", "*", "/", "%",
+            "min", "max", "abs", "ceil", "floor", "round",
+            "sqrt", "ln", "log2", "log10", "^",
+            "format",
+        };
+
         private static Expression ParseArray(JArray arr, bool isColor)
         {
             if (arr.Count == 0) return new LiteralExpression(null);
 
-            // Check if first element is a string (expression operator) or a value (literal array)
-            if (arr[0] is JValue firstVal && firstVal.Type == JTokenType.String)
+            if (arr[0] is JValue firstVal && firstVal.Type == JTokenType.String
+                && KnownOperators.Contains(firstVal.Value<string>()))
             {
                 return ParseExpression(arr, isColor);
             }
 
-            // Literal array (e.g., [255, 0, 0] could be a color in some contexts)
-            return new LiteralExpression(arr.ToString());
+            // Literal array (e.g. text-font: ["Open Sans Regular", ...]).
+            // Materialise each element as a primitive so consumers iterating
+            // the value (e.g. SymbolRenderer.ResolveFontstack) see proper
+            // strings/numbers instead of a JSON-formatted JArray.
+            var values = new object[arr.Count];
+            for (int i = 0; i < arr.Count; i++)
+                values[i] = JTokenToLiteral(arr[i]);
+            return new LiteralExpression(values);
         }
 
         private static Expression ParseExpression(JArray arr, bool isColor)
@@ -292,6 +349,33 @@ namespace MapLibre.Unity.Expressions
 
                 case "to-number":
                     return new ToNumberExpression(ParseTokenExpression(arr[1], false));
+
+                case "boolean":
+                {
+                    // Type-assertion: returns the first arg that evaluates to a
+                    // boolean, falling back to false. Required by feature-state
+                    // hover patterns (`["boolean", ["feature-state", "hover"], false]`).
+                    var args = new Expression[arr.Count - 1];
+                    for (int i = 1; i < arr.Count; i++)
+                        args[i - 1] = ParseTokenExpression(arr[i], false);
+                    return new BooleanAssertExpression(args);
+                }
+
+                case "string":
+                {
+                    var args = new Expression[arr.Count - 1];
+                    for (int i = 1; i < arr.Count; i++)
+                        args[i - 1] = ParseTokenExpression(arr[i], false);
+                    return new StringAssertExpression(args);
+                }
+
+                case "number":
+                {
+                    var args = new Expression[arr.Count - 1];
+                    for (int i = 1; i < arr.Count; i++)
+                        args[i - 1] = ParseTokenExpression(arr[i], false);
+                    return new NumberAssertExpression(args);
+                }
 
                 case "length":
                     return new LengthExpression(ParseTokenExpression(arr[1], false));

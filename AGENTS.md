@@ -8,8 +8,8 @@ to keep older Claude-only setups working.)
 
 ## Project Overview
 
-MapLibre GL JS の Unity 版。C# 純粋実装 (ネイティブプラグインなし) で
-MapLibre Style Spec 完全準拠を目指す。
+A Unity port of MapLibre GL JS. Pure C# implementation (no native plugins),
+targeting full MapLibre Style Spec compliance.
 
 ## Tech Stack
 
@@ -17,9 +17,10 @@ MapLibre Style Spec 完全準拠を目指す。
 - C# (.NET Standard 2.1)
 - Newtonsoft.Json (com.unity.nuget.newtonsoft-json 3.2.1)
 - Unity Input System (1.18.0)
-- TextMeshPro (com.unity.textmeshpro) — Symbol レイヤーのテキスト・アイコン
-  描画に使用。TMP Essential Resources のインポートが必要 (style.glyphs URL
-  を使う場合は不要 — SDF 経路にフォールバック)。
+- TextMeshPro (com.unity.textmeshpro) — used to render text and icons in
+  Symbol layers. TMP Essential Resources must be imported (not required
+  when the style supplies a `glyphs` URL — the SDF text path is used as
+  a fallback in that case).
 
 ## Code Structure
 
@@ -28,33 +29,57 @@ loaded as an embedded UPM package when this repo is opened in Unity.
 
 ```
 Packages/com.kazukikuriyama.maplibre-unity/
+  package.json    UPM manifest (name, version, dependencies, samples)
   Runtime/
-    Core/         MapLibreMap (main MonoBehaviour), MapState, MapConstants
-    Coordinates/  LngLat, MercatorCoordinate, CoordinateConversion
-    Style/        StyleSpec, StyleSource, StyleLayer, StyleParser, TileJSON
-    Expression/   Expression, ExpressionParser, EvaluationContext, ColorSpaceConversion
+    Core/         MapLibreMap (main MonoBehaviour, split across
+                  .Async / .Camera / .Events / .FeatureState / .Input /
+                  .Layers / .Sources / .Style partials), MapState,
+                  MapConstants, MapEvent / MapEventSystem / MapEventType,
+                  FeatureQuery, GeometryHitTest, QueryFeature
+    Coordinates/  LngLat, LngLatBounds, MercatorCoordinate,
+                  CoordinateConversion
+    Style/        StyleSpec, StyleSource, StyleLayer (declares
+                  ICustomLayer), StyleParser, TileJSON, SpriteAtlas,
+                  TerrainDefinition
+    Expression/   Expression, ExpressionParser, EvaluationContext
+                  (declares IFeatureStateStore), ColorSpaceConversion
     Tiles/        TileID, TileGrid, TileManager, TileState
-    Source/       ISource, RasterTileSource, VectorTileSource, TileCache,
+    Source/       ISource, RasterTileSource, VectorTileSource,
+                  GeoJsonSource, GeoJsonToVectorTile, ImageSource,
                   ICustomRasterSource, ICustomVectorSource,
-                  GlyphSource, GlyphAtlas, GlyphPbfParser,
+                  TileCache, VectorTileCache, TileDiskCache,
+                  HttpRetryPolicy, TransformRequest, SpriteLoader,
+                  SuperclusterLite, GlyphSource, GlyphAtlas,
+                  GlyphPbfParser, AwaitableExtensions,
                   PMTiles/, MBTiles/
-    Rendering/    RasterTileRenderer, VectorTileRenderer, SymbolRenderer,
-                  CircleRenderer, FillExtrusionRenderer, HeatmapRenderer,
-                  HillshadeRenderer, BackgroundRenderer, MapRenderer,
-                  SdfTextMeshBuilder
+    Rendering/    ILayerRenderer, MapRenderer, RasterTileRenderer,
+                  VectorTileRenderer, BackgroundRenderer,
+                  CircleRenderer, FillExtrusionRenderer,
+                  HeatmapRenderer (+ HeatmapColorRamp),
+                  HillshadeRenderer, ImageRenderer, SkyRenderer,
+                  SymbolRenderer (.LinePlacement / .TextAndIcons
+                  partials), SdfTextMeshBuilder, SdfLineTextMeshBuilder
     Pool/         ObjectPool, TileObjectPool
-    Camera/       MapCamera, MapInputHandler, MapAnimator
-    VectorTile/   VectorTileData, VectorTileMeshBuilder, GeometryDecoder, PbfReader
-    UI/           MapControlsOverlay, Marker, Popup
-  Shaders/        MapLibreRasterTile / Background / Fill / Line / FillPattern /
-                  LinePattern / Circle / FillExtrusion / FillExtrusionPattern /
-                  Heatmap / Hillshade / Sky / Icon / SdfText / TerrainTile
-  Editor/
-  Samples~/       HomeScene + per-feature demo scenes (opt-in via
-                  Package Manager UI; trailing ~ hides them from
-                  asset import — import them once for local dev)
+    Camera/       MapCamera, MapInputHandler, MapAnimator,
+                  FreeCameraOptions
+    Terrain/      TerrainManager (DEM-based 3D terrain)
+    VectorTile/   VectorTileData, VectorTileParser,
+                  VectorTileMeshBuilder, GeometryDecoder,
+                  EarClipTriangulator, PbfReader
+    UI/           MapControlsOverlay, Marker, MarkerManager, Popup
+                  (+ MapPanelSettings.asset)
+  Shaders/        MapLibreRasterTile / Background / BackgroundPattern /
+                  Fill / FillPattern / Line / LinePattern /
+                  LineGradient / Circle / FillExtrusion /
+                  FillExtrusionPattern / Heatmap / Hillshade / Sky /
+                  Icon / SdfText / TerrainTile
+  Editor/         MapLibreMapEditor, FontSetupWindow, TMPEssentialsCheck
+  Samples/        HomeScene + per-feature demo scenes (bundled with
+                  the package; visible directly under Packages/ in
+                  the Project window — read-only, no import needed)
   Tests/
-    EditMode/     Expression / StyleParser / ColorSpace / PMTiles / MBTiles 単体テスト
+    EditMode/     Coordinates / EarClipTriangulator / Expression /
+                  StyleParser / ColorSpace / PMTiles / MBTiles unit tests
     PlayMode/     Sample scene smoke tests (run after importing samples)
 ```
 
@@ -97,6 +122,19 @@ Packages/com.kazukikuriyama.maplibre-unity/
   background mesh builds can read state safely while the main thread
   mutates it.
 
+## Git Workflow
+
+- **Never `git commit` or `git push` without explicit instruction.** Even
+  after finishing an edit, leave the working tree dirty until the user
+  asks to commit (e.g., "コミットして" / "commit and push" / similar).
+  Showing the diff or asking "shall I commit?" is fine; running the
+  command is not.
+- This applies to every change — tiny typo fixes included. The user
+  reviews each change before it lands.
+- When the user confirms, prefer batching related changes into a single
+  commit rather than splitting unless they ask otherwise.
+- Never `--force` push without an explicit, scoped request.
+
 ## Conventions
 
 - All new runtime code goes under `Packages/com.kazukikuriyama.maplibre-unity/Runtime/`
@@ -132,18 +170,42 @@ Packages/com.kazukikuriyama.maplibre-unity/
   is unset, so omitting these lines yields invisible text. Use
   `Font.CreateDynamicFontFromOSFont("Arial", 16)` for a runtime fallback.
 
-### C# Naming (Microsoft 標準準拠 / `.editorconfig` で強制)
+### C# Naming (follows Microsoft conventions / enforced by `.editorconfig`)
 
-| 種類 | 規約 | 例 |
+This project follows the **Microsoft .NET / C# coding conventions**, not
+Unity Technologies' internal C# style guide. Roslyn analyzer rules in
+`.editorconfig` flag deviations as warnings.
+
+| Kind | Convention | Example |
 |------|------|----|
 | namespace, class, struct, enum, method, property, event | PascalCase | `MapLibreMap`, `GetPaintProperty()` |
-| public / protected フィールド | PascalCase | `MaxZoom` |
-| private / internal インスタンスフィールド | `_camelCase` | `_tileManager` |
+| public / protected fields | PascalCase | `MaxZoom` |
+| private / internal instance fields | `_camelCase` | `_tileManager` |
+| private static fields (non-readonly) | `_camelCase` | `_singletonCache` |
 | const | PascalCase | `MaxLogLines` |
 | static readonly | PascalCase | `DefaultColors` |
-| ローカル変数, パラメータ | camelCase | `tileId`, `zoomLevel` |
-| インターフェース | `I` + PascalCase | `ISource` |
-| 型パラメータ | `T` + PascalCase | `TValue` |
+| Local variables, parameters | camelCase | `tileId`, `zoomLevel` |
+| Interfaces | `I` + PascalCase | `ISource` |
+| Type parameters | `T` + PascalCase | `TValue` |
+
+**Do NOT use Unity-Technologies-style prefixes** (`m_`, `k_`, `s_`).
+Unity's official C# Style Guide uses these for member / constant /
+static fields, but this project does not — they are ruled out for
+consistency with the wider .NET ecosystem and to keep the API surface
+familiar to non-Unity contributors. Roslyn warnings will fire if you
+introduce them. Concretely:
+
+```csharp
+// ❌ Unity-Technologies style — DO NOT use
+private const int     k_MaxRetries = 3;
+private int           m_CurrentRetry;
+private static Foo    s_Instance;
+
+// ✅ This project (Microsoft conventions)
+private const int  MaxRetries = 3;
+private int        _currentRetry;
+private static Foo _instance;
+```
 
 ## OSS Quality Guidelines
 

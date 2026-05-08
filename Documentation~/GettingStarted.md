@@ -36,14 +36,16 @@ Unity** with this layout:
 Packages/com.kazukikuriyama.maplibre-unity/
   Runtime/        Library code (asmdef: MapLibre.Unity)
   Editor/         Inspectors, font setup wizard
-  Samples~/       Example scenes — opt-in via Package Manager UI
+  Samples/        Example scenes — visible immediately under Packages/
   Shaders/        URP shaders for raster / vector / SDF text
 ```
 
-To use the sample scenes, open Package Manager, select **MapLibre
-Unity**, switch to the **Samples** tab, and click **Import** next to
-**All Samples**. Demos land at
-`Assets/Samples/MapLibre Unity/<version>/All Samples/`.
+Sample scenes ship with the package — no import step is required. Open
+`Packages/MapLibre Unity/Samples/Home/HomeScene.unity` from the Project
+window. Add the sample scenes to **File → Build Profiles** the first
+time you press Play so HomeScene's `SceneManager.LoadScene` calls
+resolve. Samples under `Packages/` are read-only; copy a demo into
+`Assets/` if you want to modify it.
 
 ## 3. The minimum viable map
 
@@ -177,22 +179,36 @@ _map.On(MapEventType.Click, "places", e => {
 
 ## 7. Where to look next
 
-- The imported **Home** sample (`Assets/Samples/MapLibre Unity/<version>/All Samples/Home/`) — `HomeScene` lists every sample and loads them at runtime.
+- The bundled **Home** sample (`Packages/MapLibre Unity/Samples/Home/`) — `HomeScene` lists every sample and loads them at runtime.
 - **README → Advanced Features** — short snippets for Custom Layer,
   Custom Source, feature-state, and Glyph URL.
-- The imported **FeatureStateHoverDemo** sample — the canonical
+- The bundled **FeatureStateHoverDemo** sample — the canonical
   example for state-driven highlighting.
-- The imported **CustomLayerDemo** sample — pin Unity GameObjects to
+- The bundled **CustomLayerDemo** sample — pin Unity GameObjects to
   longitude/latitude and let the renderer manage z-order.
 - **CHANGELOG.md** — what's been added recently and what's still on the
   Phase 11 todo list.
 
 ## 8. Common stumbling blocks
 
-| Symptom | Likely cause |
+The single highest-leverage step when something goes wrong is wiring
+an error listener at startup so HTTP failures, parse errors, and
+expression problems surface in the Console:
+
+```csharp
+_map.On(MapEventType.Error, e => Debug.LogError(e.ErrorMessage));
+```
+
+The most frequent issues:
+
+| Symptom | First thing to check |
 |---|---|
-| Black / nothing rendering | Camera is the default `MainCamera` — you need URP enabled and the camera's Renderer set to a URP renderer asset. |
-| Tiles never load | Network blocked or missing CORS in WebGL builds. Check `MapEventType.Error` events for the actual HTTP error. |
-| Labels appear as squares | TextMeshPro's Essential Resources are missing **and** the style does not declare a `glyphs` URL — the renderer falls back to TMP and TMP needs the resources. Either import them (`Window → TextMeshPro → Import TMP Essential Resources`) or add a `glyphs` URL to the style. |
-| Custom Layer GameObjects vanish at zoom-out | Set `MaxZoom` (or leave it null) on the corresponding `LayerDefinition` — the map respects the spec's `minzoom` / `maxzoom`. |
-| `feature-state` does nothing | The feature must have a stable, non-zero `id`. GeoJSON features need an `id` field at the feature level (not in `properties`). |
+| Black / nothing rendering | The active camera must use a URP renderer asset. |
+| Tiles never load | `MapEventType.Error` for the actual HTTP error; check tile URL template uses `{z}/{x}/{y}`. |
+| Labels appear as squares | Either import TMP Essential Resources (TMP fallback path) or add a `glyphs` URL to the style (SDF path). |
+| `EaseTo` / `FlyTo` snaps instantly | Durations are milliseconds — `600f`, not `0.6f`. |
+| `feature-state` does nothing | Feature needs a stable non-zero `id`, and an expression must actually reference `["feature-state", ...]`. |
+
+The full list with deeper explanations and platform-specific notes
+(iOS ATS, Android `Internet Access`, font fallback at build time,
+sprite/pattern lookups, …) lives in [Troubleshooting](Troubleshooting.md).

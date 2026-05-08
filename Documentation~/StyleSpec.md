@@ -28,6 +28,24 @@ When `setStyle` runs, the existing layer / source state is torn down
 and rebuilt. Cached tile bytes for unchanged sources are reused —
 only newly-introduced sources hit the network.
 
+## Initial View (`center` / `zoom` / `bearing` / `pitch`)
+
+The four top-level positional properties from the Style Spec are
+honored on first load. They can also be overridden from the
+`MapLibreMap` Inspector:
+
+```
+Inspector field set (non-NaN) → Inspector value wins
+Inspector field NaN           → style JSON value
+style JSON missing the key    → 0
+```
+
+This matches the MapLibre GL JS convention where
+`new Map({ zoom: 10, style: ... })` overrides the style's `zoom`.
+Inspector defaults are `NaN`, so a fresh `MapLibreMap` component
+defers to the style. Use the Inspector's **Override** / **Use style**
+buttons next to each field to toggle between the two modes.
+
 ## Sources
 
 | Type | Status | Notes |

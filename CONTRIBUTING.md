@@ -21,11 +21,11 @@ Please file issues on the
 When filing a bug report, include:
 
 - **Unity version** (e.g. `6000.3.10f1`) and target platform (Editor /
-  Standalone / WebGL / Mobile).
+  Standalone — verified; iOS / Android — untested but reports welcome;
+  WebGL — unsupported).
 - **URP version** and render pipeline asset name if non-default.
 - **Repro steps** — ideally a minimal sample scene or a stripped-down
-  `style.json`. Attach relevant log output (Unity Console, browser
-  DevTools for WebGL).
+  `style.json`. Attach the relevant Unity Console output.
 - **Expected vs. actual** behavior, including comparison with
   [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) when the
   feature has an upstream counterpart.
@@ -54,23 +54,24 @@ cd maplibre-unity
 
 The library source lives under `Packages/com.kazukikuriyama.maplibre-unity/` —
 Unity loads it as an embedded UPM package automatically. Sample scenes
-live in `Packages/com.kazukikuriyama.maplibre-unity/Samples~/`; the trailing `~`
-hides them from Unity's asset import (so they ship as opt-in package
-samples). To work on samples locally:
+ship under `Packages/com.kazukikuriyama.maplibre-unity/Samples/` and
+appear directly in the Project window; no Package Manager import step is
+needed.
 
-1. **Window → Package Manager → MapLibre Unity → Samples →
-   All Samples → Import.** Unity copies the demos to
-   `Assets/Samples/MapLibre Unity/<version>/All Samples/`.
-2. Open `Assets/Samples/MapLibre Unity/<version>/All Samples/Home/HomeScene.unity`
-   and press Play to verify the project boots.
-3. Add the imported scenes to **File → Build Profiles** so the
-   PlayMode smoke test (which looks them up in Build Settings) and the
-   `HomeSceneLoader` (which calls `SceneManager.LoadScene` by name)
-   resolve.
+1. Open `Packages/MapLibre Unity/Samples/Home/HomeScene.unity` and press
+   Play to verify the project boots.
+2. The first time you open this repo, `Tests/EditMode/EnsureSamplesImported.cs`
+   automatically registers every sample scene in **File → Build Profiles**
+   so HomeScene's `SceneManager.LoadScene` calls and the PlayMode smoke
+   test can resolve them. If you ever clear Build Settings manually,
+   delete the SessionState marker (`Edit → Clear All PlayerPrefs` is too
+   aggressive — restart the Editor instead) to re-trigger registration.
+3. Samples under `Packages/` are read-only. To experiment, copy the
+   demo folder you want to modify into `Assets/` first.
 
-For runtime / editor code changes you do not need to import samples —
-edit files directly in `Packages/com.kazukikuriyama.maplibre-unity/Runtime/` /
-`Editor/` and Unity recompiles in place.
+For runtime / editor code changes edit files directly in
+`Packages/com.kazukikuriyama.maplibre-unity/Runtime/` / `Editor/` and
+Unity recompiles in place.
 
 ### Branching
 
@@ -104,11 +105,11 @@ initialization. Each scene early-exits as soon as every `MapLibreMap`
 reports `IsInitialized` past a 1.5 s settle window (capped at 3 s).
 Full suite finishes in roughly 90–120 seconds.
 
-> **Note:** PlayMode tests only run after you import the samples (see
-> the [Development Setup](#development-setup) section) and add the
-> imported scenes to Build Settings. The test discovers scenes via
-> `EditorBuildSettings`, so an empty Build Settings list = the test
-> reports a single named failure.
+> **Note:** PlayMode tests rely on every sample scene being registered
+> in Build Settings. `Tests/EditMode/EnsureSamplesImported.cs` does this
+> automatically on Editor startup, so a fresh clone usually "just works".
+> If Build Settings is empty (and the test reports a single named
+> failure), restart the Editor to re-trigger registration.
 
 ```
 Window → General → Test Runner → PlayMode → Run All in Player

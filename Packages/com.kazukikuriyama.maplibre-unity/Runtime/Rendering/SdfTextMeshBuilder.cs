@@ -19,6 +19,17 @@ namespace MapLibre.Unity.Rendering
     /// </summary>
     public static class SdfTextMeshBuilder
     {
+        // Mapbox glyph PBFs render onto a 24-pixel SDF cell. SymbolRenderer
+        // computes a single `textScale` value sized for a TMP em-square of 36
+        // (TmpFontSize), so we pre-scale the SDF mesh by 36/24 = 1.5 to make
+        // both pipelines hit the same on-screen size for a given text-size.
+        // Without this, SDF labels render ~33% smaller than the equivalent TMP
+        // labels and end up sub-pixel on typical map zooms — the "dots and
+        // stains" appearance that's reported when a glyphs URL is wired up.
+        private const float SdfCellPx = 24f;
+        private const float TmpEmPx = 36f;
+        private const float SdfMeshScale = TmpEmPx / SdfCellPx;
+
         /// <summary>
         /// Returns the metrics-only result of laying out <paramref name="text"/>
         /// without producing a mesh. Useful for collision detection where the
@@ -55,7 +66,10 @@ namespace MapLibre.Unity.Rendering
                 }
                 x += g.Advance;
             }
-            result.Width = x;
+            // Match the units the mesh exposes (see SdfMeshScale comment).
+            result.Width = x * SdfMeshScale;
+            result.MinY *= SdfMeshScale;
+            result.MaxY *= SdfMeshScale;
             return result;
         }
 
@@ -93,18 +107,22 @@ namespace MapLibre.Unity.Rendering
                 }
 
                 int v0 = verts.Count;
-                float left = pen + g.Left;
-                float right = left + g.Width;
-                // Mapbox glyph PBFs use an inverted y origin: top is positive,
-                // bottom is negative. We follow the same convention so the
-                // baseline sits at y=0 in mesh space.
-                float top = g.Top;
-                float bottom = top - g.Height;
+                // Mapbox glyph bitmaps include a 3-pixel SDF buffer around the
+                // metrics width/height. The atlas slot covers the full buffered
+                // bitmap, so the quad must extend by the buffer on every side
+                // and the anchor (left/top) has to step back by the buffer too.
+                // Match the maplibre-gl-js shaping.ts convention so labels are
+                // positioned identically across implementations.
+                const int buf = GlyphAtlas.SdfBuffer;
+                float qLeft = (pen + g.Left - buf) * SdfMeshScale;
+                float qRight = qLeft + (g.Width + 2 * buf) * SdfMeshScale;
+                float qTop = (g.Top + buf) * SdfMeshScale;
+                float qBottom = qTop - (g.Height + 2 * buf) * SdfMeshScale;
 
-                verts.Add(new Vector3(left,  bottom, 0));
-                verts.Add(new Vector3(right, bottom, 0));
-                verts.Add(new Vector3(right, top,    0));
-                verts.Add(new Vector3(left,  top,    0));
+                verts.Add(new Vector3(qLeft,  qBottom, 0));
+                verts.Add(new Vector3(qRight, qBottom, 0));
+                verts.Add(new Vector3(qRight, qTop,    0));
+                verts.Add(new Vector3(qLeft,  qTop,    0));
 
                 // Atlas Y grows downward (Texture2D.SetPixels32(0,0,...) puts
                 // pixel (0,0) at the bottom-left for SetPixels — but our

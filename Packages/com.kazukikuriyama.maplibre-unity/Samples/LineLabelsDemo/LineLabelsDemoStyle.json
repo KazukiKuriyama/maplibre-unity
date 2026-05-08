@@ -1,0 +1,36 @@
+{
+    "version": 8,
+    "name": "Line Labels Demo",
+    "center": [139.7500, 35.6850],
+    "zoom": 9,
+    "sources": {
+        "osm-raster": {
+            "type": "raster",
+            "tiles": [
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "maxzoom": 19,
+            "attribution": "\u00a9 OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#f0ede6"
+            }
+        },
+        {
+            "id": "osm-tiles",
+            "type": "raster",
+            "source": "osm-raster",
+            "paint": {
+                "raster-opacity": 0.6
+            }
+        }
+    ]
+}

@@ -1,0 +1,37 @@
+{
+    "version": 8,
+    "name": "Particle Source Demo",
+    "center": [139.7670, 35.6814],
+    "zoom": 9,
+    "pitch": 45,
+    "sources": {
+        "osm-raster": {
+            "type": "raster",
+            "tiles": [
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "maxzoom": 19,
+            "attribution": "© OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#e0e0e0"
+            }
+        },
+        {
+            "id": "osm-tiles",
+            "type": "raster",
+            "source": "osm-raster",
+            "paint": {
+                "raster-opacity": 1.0
+            }
+        }
+    ]
+}

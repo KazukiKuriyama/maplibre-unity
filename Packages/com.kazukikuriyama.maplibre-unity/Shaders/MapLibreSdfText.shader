@@ -8,8 +8,11 @@ Shader "MapLibre/SdfText"
         _HaloWidth ("Halo Width (SDF units)", Range(0, 0.4)) = 0.0
         _HaloBlur  ("Halo Blur (SDF units)", Range(0, 0.4)) = 0.05
         _Opacity ("Opacity", Range(0, 1)) = 1.0
-        // SDF threshold. 0.5 = stroke edge in 8-bit Mapbox glyph PBFs.
-        _Cutoff ("SDF Cutoff", Range(0.1, 0.9)) = 0.5
+        // SDF threshold. Mapbox glyph PBFs encode the actual stroke edge at
+        // byte value 192 (= 192/255 ≈ 0.7529). Sampling at 0.5 includes a
+        // ~64-byte band outside the real edge, so glyph strokes render so
+        // wide they merge into blobs that don't look like text.
+        _Cutoff ("SDF Cutoff", Range(0.1, 0.95)) = 0.7529
     }
 
     SubShader

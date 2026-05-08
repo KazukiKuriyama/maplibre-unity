@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/KazukiKuriyama/maplibre-unity/security/advisories/new
+    about: Use private vulnerability reporting — do not file a public issue.
+  - name: Question / discussion
+    url: https://github.com/KazukiKuriyama/maplibre-unity/discussions
+    about: Open-ended questions, integration help, or design discussion.
+  - name: MapLibre Style Spec reference
+    url: https://maplibre.org/maplibre-style-spec/
+    about: Check the upstream spec before reporting "X does not work" — Unity may not yet implement it.

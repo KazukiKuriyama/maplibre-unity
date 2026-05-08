@@ -101,11 +101,13 @@ namespace MapLibre.Unity
 
             // (Re)create the glyph source if the new style declared one.
             // SetStyle replaces everything, so old glyph state is dropped.
+            DetachGlyphRangeListener();
             _glyphSource = null;
             if (!string.IsNullOrEmpty(Style.Glyphs))
             {
                 _glyphSource = new GlyphSource();
                 _glyphSource.Initialize(Style.Glyphs, this, TransformRequest);
+                AttachGlyphRangeListener();
             }
 
             if (_iconMaterial == null && _iconShader != null)
@@ -337,6 +339,7 @@ namespace MapLibre.Unity
         public void SetGlyphs(string glyphsUrl)
         {
             if (Style != null) Style.Glyphs = glyphsUrl;
+            DetachGlyphRangeListener();
             if (string.IsNullOrEmpty(glyphsUrl))
             {
                 _glyphSource = null;
@@ -346,7 +349,50 @@ namespace MapLibre.Unity
             if (_glyphSource == null)
                 _glyphSource = new GlyphSource();
             _glyphSource.Initialize(glyphsUrl, this, TransformRequest);
+            AttachGlyphRangeListener();
             _mapRenderer?.SetGlyphSource(_glyphSource, Shader.Find("MapLibre/SdfText"));
+        }
+
+        // SDF labels render with a null mesh on first dispatch when glyph PBFs
+        // are still in flight. The atlas is populated asynchronously, so we
+        // need a hook that re-fires tile dispatch once new glyphs land —
+        // otherwise SdfLabel(partial) GameObjects stay empty forever.
+        private void AttachGlyphRangeListener()
+        {
+            if (_glyphSource == null) return;
+            _glyphSource.OnAnyRangeLoaded += OnGlyphRangeLoaded;
+        }
+
+        private void DetachGlyphRangeListener()
+        {
+            if (_glyphSource == null) return;
+            _glyphSource.OnAnyRangeLoaded -= OnGlyphRangeLoaded;
+        }
+
+        // Coalesce multiple range-loaded notifications into a single refresh
+        // and ensure the refresh runs *after* the current dispatch cycle has
+        // unwound. Without this, a disk-cache hit completes the FetchRange
+        // coroutine synchronously inside SymbolRenderer.ShowTile, so the
+        // RefreshTiles → TileManager.Clear → HideTile chain would run
+        // mid-ShowTile and corrupt _requestedTiles / _activeTileObjects state.
+        private bool _glyphRefreshPending;
+
+        private void OnGlyphRangeLoaded()
+        {
+            if (!_isInitialized) return;
+            if (_glyphRefreshPending) return;
+            _glyphRefreshPending = true;
+        }
+
+        // Drained from Update on the frame after a glyph range loaded. Driving
+        // the deferral through the existing Update tick (rather than a fresh
+        // coroutine) avoids races with scene unload and keeps the work on the
+        // main thread.
+        private void DrainPendingGlyphRefresh()
+        {
+            if (!_glyphRefreshPending) return;
+            _glyphRefreshPending = false;
+            RefreshTiles();
         }
 
         /// <summary>

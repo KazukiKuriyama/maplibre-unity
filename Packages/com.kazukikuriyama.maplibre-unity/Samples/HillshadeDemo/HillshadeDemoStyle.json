@@ -1,0 +1,58 @@
+{
+    "version": 8,
+    "name": "Hillshade Layer Demo",
+    "center": [138.7274, 35.3606],
+    "zoom": 10,
+    "sources": {
+        "osm": {
+            "type": "raster",
+            "tiles": [
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "minzoom": 0,
+            "maxzoom": 19,
+            "attribution": "© OpenStreetMap contributors"
+        },
+        "terrain": {
+            "type": "raster-dem",
+            "tiles": [
+                "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
+            ],
+            "tileSize": 256,
+            "encoding": "terrarium",
+            "maxzoom": 15,
+            "attribution": "© Mapzen, © AWS Terrain Tiles"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#f0ede6"
+            }
+        },
+        {
+            "id": "osm",
+            "type": "raster",
+            "source": "osm",
+            "paint": {
+                "raster-opacity": 1.0
+            }
+        },
+        {
+            "id": "hillshade",
+            "type": "hillshade",
+            "source": "terrain",
+            "paint": {
+                "hillshade-illumination-direction": 335,
+                "hillshade-exaggeration": 1.0,
+                "hillshade-shadow-color": "#473B24",
+                "hillshade-highlight-color": "#ffffff",
+                "hillshade-accent-color": "#2b2b2b",
+                "hillshade-opacity": 0.6
+            }
+        }
+    ]
+}

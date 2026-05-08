@@ -6,7 +6,7 @@
 
 A pure-C# port of [MapLibre GL JS](https://maplibre.org/) for the Unity
 game engine. No native plugins — every layer of the pipeline runs on the
-managed runtime, so it works on every Unity build target including WebGL.
+managed runtime.
 
 ## Features
 
@@ -34,6 +34,10 @@ managed runtime, so it works on every Unity build target including WebGL.
   kept for non-await contexts.
 - **3D** — DEM-driven terrain with normal-mapped hillshade, fill-extrusion
   for buildings, free-camera options for external rigs.
+- **Unity-only sources** — `PrefabSource` anchors any GameObject —
+  buildings, vehicles, particle systems — to a `LngLat` with click /
+  hover / drag events, automatic culling, and the same world-scale
+  conversion the tile renderers use.
 - **Concurrency** — vector tile parsing and mesh building run on
   `Task.Run`; `feature-state` is `ConcurrentDictionary`-backed.
 - **URP** — ships with URP shaders (Lit raster, dashed line, SDF text,
@@ -122,6 +126,25 @@ Comparison against MapLibre Native (C++) and MapLibre GL JS (Web).
 - TextMeshPro — required for symbol layers (text / icons)
   - On first use, import resources via **Window > TextMeshPro > Import TMP Essential Resources**
 
+### Supported platforms
+
+**Verified:** Standalone — Windows / macOS / Linux. This is the only
+platform the maintainer regularly builds and runs against.
+
+**Untested:** iOS / Android. The runtime uses `Task.Run`, synchronous
+`System.IO.File` for the tile / glyph cache, and `UnityWebRequest` for
+networking — all of which are available on iOS and Android in
+principle, so the library is *expected* to work there. No mobile
+build has been smoke-tested by the maintainer; reports (and PRs) from
+people trying it on device are very welcome.
+
+**Not supported:** WebGL. Vector tile parsing and mesh building rely
+on `Task.Run` with `lock`-protected queues, and the tile / glyph
+caches use synchronous `System.IO.File` APIs — neither works under
+the default WebGL single-threaded runtime. Support may be added later
+behind `#if UNITY_WEBGL` guards; until then WebGL builds will compile
+but crash at runtime.
+
 ## Installation
 
 ### Via Unity Package Manager (git URL)
@@ -151,29 +174,27 @@ Or add to `Packages/manifest.json`:
 
 The repository itself is a Unity project. The package source lives at
 `Packages/com.kazukikuriyama.maplibre-unity/` and is loaded as an embedded UPM
-package when you open the project in Unity Hub. Sample scenes live in
-`Packages/com.kazukikuriyama.maplibre-unity/Samples~/` — the trailing `~`
-intentionally hides them from the asset import pipeline so they ship
-as opt-in samples. To use them in the Editor, open
-**Window → Package Manager → MapLibre Unity → Samples → All Samples →
-Import**; the launcher then appears at
-`Assets/Samples/MapLibre Unity/<version>/All Samples/Home/HomeScene.unity`.
+package when you open the project in Unity Hub. Sample scenes ship
+bundled at `Packages/com.kazukikuriyama.maplibre-unity/Samples/` and
+appear directly under **Packages → MapLibre Unity → Samples** in the
+Project window — no import step is required. Open
+`Packages/MapLibre Unity/Samples/Home/HomeScene.unity` to launch the
+demo browser.
 
 ## Quick Start
 
 1. Open this project (or any project that has installed the package)
    with Unity Hub.
-2. Open the Package Manager (**Window → Package Manager**), select
-   **MapLibre Unity**, switch to the **Samples** tab and import
-   **All Samples**. They land at
-   `Assets/Samples/MapLibre Unity/<version>/All Samples/`.
-3. Open `Home/HomeScene.unity` from the imported folder — a launcher
-   scene that lists every demo. Click any tile to load that demo at
-   runtime. (Open `BasicRasterMap/` directly if you want the minimal
-   end-to-end example.)
-4. Add the imported scenes to **File → Build Profiles** so the
-   launcher's `SceneManager.LoadScene` lookups resolve.
-5. Press Play. The selected sample (OSM raster around Tokyo by
+2. Open `Packages/MapLibre Unity/Samples/Home/HomeScene.unity` from
+   the Project window — a launcher scene that lists every demo and
+   loads the selected one at runtime. (Open
+   `Packages/MapLibre Unity/Samples/BasicRasterMap/` directly if you
+   want the minimal end-to-end example.)
+3. Add every sample scene under
+   `Packages/com.kazukikuriyama.maplibre-unity/Samples/` to
+   **File → Build Profiles** so the launcher's `SceneManager.LoadScene`
+   lookups resolve.
+4. Press Play. The selected sample (OSM raster around Tokyo by
    default) appears.
 
 A longer, step-by-step walkthrough — including how to drive the style
@@ -282,9 +303,9 @@ Packages/com.kazukikuriyama.maplibre-unity/
   Shaders/        URP shaders (raster, line, fill-extrusion, sdf-text,
                   heatmap, hillshade, sky)
   Editor/         Inspectors, Font Setup wizard
-  Samples~/       38 demo scenes (Home/ is the launcher) — opt-in via
-                  Package Manager UI; the trailing ~ hides them from
-                  asset import
+  Samples/        37 demo scenes plus a Home/ launcher — bundled with
+                  the package and visible directly under Packages/ in
+                  the Project window (read-only)
   Tests/          EditMode + PlayMode test assemblies
 ```
 
@@ -311,7 +332,7 @@ This works the same way as Word or a web browser rendering text using OS fonts �
 > 2. Include an OFL-licensed font (e.g. Noto Sans JP) in the project and assign it manually
 >
 > If you bundle a font file, make sure its license allows redistribution.
-> See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for a list of recommended fonts.
+> See [THIRD_PARTY_NOTICES.md](Packages/com.kazukikuriyama.maplibre-unity/THIRD_PARTY_NOTICES.md) for a list of recommended fonts.
 
 ### Manual setup
 
@@ -321,183 +342,49 @@ To use your own font:
 2. Generate a `TMP_FontAsset` via **Window > TextMeshPro > Font Asset Creator** (use Dynamic mode for CJK)
 3. Assign the asset to `MapLibreMap > Text > Symbol Font` in the Inspector
 
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for recommended fonts and license details.
+See [THIRD_PARTY_NOTICES.md](Packages/com.kazukikuriyama.maplibre-unity/THIRD_PARTY_NOTICES.md) for recommended fonts and license details.
 
 ## Advanced Features
 
-### Custom Layer (`ICustomLayer`)
+Detailed walkthroughs live under `Documentation~/`. Quick map:
 
-Insert user-rendered geometry into the map's render order. Mirrors MapLibre GL JS `type: "custom"`. The library owns the slot in render order (so `beforeId`, `MoveLayer`, and `minzoom`/`maxzoom` apply); you provide the rendering.
-
-```csharp
-public class MyLayer : ICustomLayer
-{
-    public string Id => "my-3d-objects";
-    private GameObject _root;
-
-    public void OnAdd(MapLibreMap map)
-    {
-        _root = new GameObject("MyLayer-Root");
-        _root.transform.SetParent(map.transform, false);
-        // Instantiate MeshRenderers / particle systems / etc.
-    }
-
-    public void Render(MapLibreMap map, UnityEngine.Camera camera)
-    {
-        var pos = map.LngLatToWorld(new LngLat(139.7, 35.7));
-        if (pos.HasValue) _root.transform.localPosition = pos.Value;
-    }
-
-    public void OnRemove(MapLibreMap map)
-    {
-        if (_root != null) UnityEngine.Object.Destroy(_root);
-    }
-}
-
-map.AddLayer(new MyLayer(), beforeId: "labels");
-```
-
-See the **CustomLayerDemo** sample for a working example with rotating cubes pinned to Tokyo landmarks.
-
-### Custom Source (`ICustomRasterSource` / `ICustomVectorSource`)
-
-Serve tiles from any backend — procedural generation, local files, custom HTTP, IPC, render-to-texture. Mirrors MapLibre GL JS `type: "custom"` source.
-
-```csharp
-public class NoiseRasterSource : ICustomRasterSource
-{
-    public int TileSize => 256;
-    public int MinZoom => 0;
-    public int MaxZoom => 14;
-    public double[] Bounds => null;
-    public string Attribution => "Procedural Demo";
-
-    public void LoadTile(CanonicalTileID tileId,
-        Action<Texture2D> onSuccess, Action<string> onError)
-    {
-        var tex = GenerateProceduralTile(tileId);
-        onSuccess(tex);
-    }
-
-    public void UnloadTile(CanonicalTileID tileId) { }
-}
-
-map.AddSource("noise", new NoiseRasterSource());
-```
-
-`ICustomVectorSource` follows the same shape but `LoadTile` returns PBF bytes that flow through the standard gzip + parse + expression pipeline.
-
-See the **CustomSourceDemo** sample for a working procedural noise example.
-
-### Feature State (`SetFeatureState` / `GetFeatureState`)
-
-Drive paint and filter expressions from runtime state — typical use cases: hover highlight, click selection, animated value changes. The renderer rebuilds only the layers whose paint / filter actually reference `["feature-state", ...]`, and only those layers' tiles, using the cached tile data (no network refetch).
-
-```csharp
-// On hover
-var sel = new MapLibreMap.FeatureSelector("source-id", "source-layer", featureId);
-map.SetFeatureState(sel, "hover", true);
-
-// In the style
-"fill-color": ["case",
-  ["boolean", ["feature-state", "selected"], false], "#e53935",
-  ["boolean", ["feature-state", "hover"], false], "#ffb300",
-  "#42a5f5"
-]
-```
-
-See the **FeatureStateHoverDemo** sample for a working interactive example.
-
-### Glyph URL / SDF text
-
-When a style declares a `glyphs` URL, MapLibre Unity fetches glyph PBFs on demand, packs them into a runtime SDF atlas, and renders text labels via a custom URP shader — no `TMP_FontAsset` configuration required.
-
-```json
-{
-  "version": 8,
-  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-  "layers": [
-    {
-      "id": "city-labels",
-      "type": "symbol",
-      "source": "cities",
-      "layout": {
-        "text-field": "{name}",
-        "text-font": ["Open Sans Regular"],
-        "text-size": 18
-      },
-      "paint": {
-        "text-color": "#1a237e",
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1.5
-      }
-    }
-  ]
-}
-```
-
-When the style has no `glyphs` URL, SymbolRenderer falls back to TextMeshPro automatically — no migration is needed for existing TMP-based projects.
-
-See the **GlyphUrlDemo** sample for a working example using the public MapLibre demotiles endpoint.
-
-### Offline tile archives (PMTiles / MBTiles)
-
-Both single-file tile formats plug in via the `ICustomRasterSource` /
-`ICustomVectorSource` hooks documented above.
-
-**PMTiles** is pure C# — works on every Unity build target including
-WebGL. Open over HTTPS Range or from a local file:
-
-```csharp
-var archive = new PMTilesArchive("https://example.com/world.pmtiles", this);
-StartCoroutine(archive.Open(
-    onReady: () =>
-    {
-        if (archive.Header.TileType == PMTilesType.Mvt)
-            map.AddSource("vector", new PMTilesVectorSource(archive, this));
-        else
-            map.AddSource("raster", new PMTilesRasterSource(archive, this));
-    },
-    onError: err => Debug.LogError($"PMTiles open failed: {err}")));
-```
-
-**MBTiles** requires a SQLite binding because the file is a SQLite
-database. The library ships the wrapper (`MBTilesReader` /
-`MBTilesRasterSource` / `MBTilesVectorSource`) but expects you to plug
-in a backend implementing `IMBTilesBackend`:
-
-```csharp
-public class MyMBTilesBackend : IMBTilesBackend
-{
-    private SQLiteConnection _conn;  // sqlite-net, Mono.Data.Sqlite, etc.
-    public void Open(string filePath) { _conn = new SQLiteConnection(filePath); }
-    public byte[] GetTile(int z, int x, int y)
-        => _conn.ExecuteScalar<byte[]>(
-            "SELECT tile_data FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?",
-            z, x, y);
-    public Dictionary<string, string> GetMetadata() { /* SELECT name, value FROM metadata */ }
-    public void Close() => _conn?.Close();
-}
-
-var reader = new MBTilesReader(new MyMBTilesBackend());
-reader.Open("/path/to/world.mbtiles");
-map.AddSource("vector", new MBTilesVectorSource(reader));
-```
-
-`MBTilesReader` already converts MBTiles' TMS y-coordinate to XYZ, so
-the backend only needs raw column reads. Recommended SQLite bindings:
-`sqlite-net-pcl` (cross-platform), `Mono.Data.Sqlite` (Editor / desktop
-Standalone). WebGL builds cannot use SQLite — use PMTiles for those.
+- **[Extensibility](Documentation~/Extensibility.md)** — `ICustomLayer`
+  injects user-rendered geometry into the map's render order;
+  `ICustomRasterSource` / `ICustomVectorSource` serve tiles from any
+  backend (procedural, local files, custom HTTP); `AddImage`
+  registers a `Texture2D` as a sprite addressable from style
+  expressions.
+- **[Offline tile archives](Documentation~/OfflineArchives.md)** —
+  pure-C# PMTiles reader (HTTPS Range or local file) and an
+  MBTiles wrapper that takes a user-supplied `IMBTilesBackend` for
+  SQLite.
+- **[Feature state](Documentation~/Expressions.md#feature-state)** —
+  drive paint and filter expressions from runtime state (hover,
+  selection, animated values). Rebuilds only the affected layers and
+  reuses cached tile bytes.
+- **[Glyph URL / SDF text](Documentation~/StyleSpec.md#glyphs)** —
+  declare `"glyphs"` in the style and labels render via a runtime SDF
+  atlas without any `TMP_FontAsset` configuration.
+- **Unity-only extensions** — Style Spec sources cover the
+  cross-platform feature set; a small Unity-specific layer adds:
+  `PrefabSource` (anchor any GameObject — buildings, vehicles, particle
+  effects — to LngLat with click / hover / drag events),
+  `MapCameraTarget` (Transform follows a coordinate, ready to plug into
+  Cinemachine's `LookAt` / `TrackingTarget`), and `CameraDrivenMapState`
+  (auto-syncs map state when an external rig drives the camera, so tiles
+  load for the area being looked at). See `PrefabSourceDemo` and
+  `ParticleSourceDemo` samples.
 
 ## Samples
 
-Samples ship as an opt-in package sample. Import via
-**Window → Package Manager → MapLibre Unity → Samples → All Samples →
-Import**; demos land under
-`Assets/Samples/MapLibre Unity/<version>/All Samples/<DemoName>/`. Open
-`Home/HomeScene.unity` from the imported folder for a launcher that
-lists every demo, or load one directly. The
-[full samples index](Packages/com.kazukikuriyama.maplibre-unity/Samples~/README.md)
+Samples ship bundled with the package and appear in the Project window
+under **Packages → MapLibre Unity → Samples** as soon as the package
+is installed — no import step required. Open
+`Packages/MapLibre Unity/Samples/Home/HomeScene.unity` for a launcher
+that lists every demo, or load one directly. Samples are read-only
+because they live under `Packages/`; copy a demo folder into `Assets/`
+if you want to modify it. The
+[full samples index](Packages/com.kazukikuriyama.maplibre-unity/Samples/README.md)
 groups every demo by topic. Highlights:
 
 | Sample | What it shows |
@@ -509,6 +396,8 @@ groups every demo by topic. Highlights:
 | `FeatureStateHoverDemo` | Hover / select highlights via `SetFeatureState`. |
 | `CustomLayerDemo` | `ICustomLayer` injecting 3D objects pinned to LngLat. |
 | `CustomSourceDemo` | Procedural noise tiles via `ICustomRasterSource`. |
+| `PrefabSourceDemo` | `PrefabSource` anchoring GameObjects (buildings, vehicles) to LngLat with click / hover / drag. |
+| `ParticleSourceDemo` | `PrefabSource` driving Unity Particle Systems pinned to LngLat. |
 | `FillExtrusionDemo` | Extruded buildings with per-feature heights. |
 | `TerrainDemo` | DEM-driven terrain + hillshade lighting. |
 | `HeatmapDemo` | Density heatmap with weight expressions. |
@@ -520,13 +409,15 @@ groups every demo by topic. Highlights:
 | `CameraAnimationDemo` | `EaseTo` / `FlyTo` / `ZoomTo` / `RotateTo` / `PanBy` / `JumpTo` side-by-side. |
 | `SkyAndLightDemo` | `SetSky` / `SetLight` driven by a time-of-day slider. |
 | `FreeCameraDemo` | Drive the map camera externally — orbit rig, Cinemachine-style. |
-| `PMTilesDemo` | Stream a single-file PMTiles archive over HTTP Range — works on WebGL. |
+| `PMTilesDemo` | Stream a single-file PMTiles archive over HTTP Range. |
 | `GeoJsonDemo` | Static GeoJSON source rendered as fill / line / circle layers. |
 | `RuntimeGeoJsonDemo` | Add / remove GeoJSON sources at runtime. |
 | `ColorInterpolationDemo` | `interpolate-hcl` vs `interpolate-rgb` side by side. |
-| `PerFeaturePatternDemo` | `fill-pattern` driven by feature properties. |
+| `PerFeaturePatternDemo` / `BackgroundPatternDemo` | `fill-pattern` and `background-pattern` driven by feature properties / sprite atlas. |
+| `LineGradientDemo` | `line-gradient` paint with `["line-progress"]`. |
+| `SymbolTranslateDemo` | `text-translate` / `icon-translate` offsets. |
 | `ImageSourceDemo` / `SpriteIconTest` | Raster image overlay + sprite-atlas icons. |
-| `DashLineTest` / `CircleDemo` / `HillshadeDemo` | Layer-type smoke samples. |
+| `DashLineTest` / `CircleDemo` / `CirclePitchDemo` / `HillshadeDemo` | Layer-type smoke samples. |
 | `DynamicSourceLayerDemo` | `addSource` / `addLayer` / `moveLayer` end-to-end. |
 | `PropertyDemo` | `setPaintProperty` / `setLayoutProperty` runtime edits. |
 | `FontTest` | Font fallback + dynamic CJK glyph generation. |
@@ -547,7 +438,9 @@ Curated guides:
   syntax and the `feature-state` API.
 - [Camera animation](Documentation~/CameraAnimation.md) — `easeTo`,
   `flyTo`, `fitBounds`, and awaitable variants.
-- [Samples index](Packages/com.kazukikuriyama.maplibre-unity/Samples~/README.md) — every demo
+- [Troubleshooting](Documentation~/Troubleshooting.md) — common
+  rendering, tile, expression, and build-time problems.
+- [Samples index](Packages/com.kazukikuriyama.maplibre-unity/Samples/README.md) — every demo
   scene grouped by topic.
 
 Contributor docs:
@@ -584,3 +477,24 @@ with whatever CI runner ends up being viable for this repo).
 MIT License — see [LICENSE](LICENSE) for details.
 
 Copyright (c) 2026 Kazuki Kuriyama
+
+Third-party attributions (mapbox/earcut, MapLibre GL JS, Newtonsoft.Json,
+Unity packages, recommended fonts) are listed in
+[THIRD_PARTY_NOTICES.md](Packages/com.kazukikuriyama.maplibre-unity/THIRD_PARTY_NOTICES.md).
+
+## Trademark Notice
+
+"MapLibre" is a trademark of the MapLibre community. This project uses
+the name to indicate compatibility with the MapLibre Style Spec and the
+MapLibre GL JS API surface; it is **not** an official MapLibre project
+and is not endorsed by, affiliated with, or sponsored by the MapLibre
+organization. Refer to the
+[MapLibre trademark guidelines](https://github.com/maplibre/maplibre/blob/main/TRADEMARK_GUIDELINES.md)
+when using the name in derivative works.
+
+"Mapbox" is a registered trademark of Mapbox, Inc. References to
+"Mapbox Vector Tile", "Mapbox glyph PBF", "Mapbox Terrain-RGB", and
+similar terms in this project's source comments and documentation are
+made nominatively, solely to identify the public specifications and
+file formats this library implements. This project is **not**
+affiliated with, endorsed by, or sponsored by Mapbox, Inc.

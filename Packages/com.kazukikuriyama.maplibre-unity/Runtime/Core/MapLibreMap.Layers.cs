@@ -20,8 +20,12 @@ namespace MapLibre.Unity
         /// </summary>
         /// <param name="layer">Layer definition to add.</param>
         /// <param name="triggerRefresh">When true (default), immediately refreshes tiles
-        /// so the new layer renders. Set to false when adding multiple layers in a batch,
-        /// then call RefreshTiles() once after all layers are added.</param>
+        /// so the new layer renders. Set to false to skip the eager refresh when adding
+        /// many layers in a batch — a deferred refresh runs at the start of the next
+        /// Update() so the layers still appear without the caller having to remember a
+        /// trailing <see cref="RefreshTiles"/> call. Calling <see cref="RefreshTiles"/>
+        /// yourself before the next Update cancels the deferred refresh, so the explicit
+        /// "false × N + RefreshTiles" batch pattern still produces exactly one refresh.</param>
         public void AddLayer(LayerDefinition layer, bool triggerRefresh = true)
         {
             if (!_isInitialized)
@@ -62,10 +66,13 @@ namespace MapLibre.Unity
 
             // Existing active tiles won't re-trigger OnTileNeeded, so force a
             // full tile cycle. Sources use LRU caches — no network re-fetches.
-            // Use triggerRefresh: false with AddLayer to batch multiple adds,
-            // then call RefreshTiles() manually once.
+            // triggerRefresh: false defers to the safety-net in Update() so a
+            // batch of AddLayer(false) calls still becomes visible next frame
+            // even if the caller never issues an explicit RefreshTiles.
             if (triggerRefresh)
                 RefreshTiles();
+            else
+                _pendingLayerRefresh = true;
         }
 
         /// <summary>
@@ -288,7 +295,15 @@ namespace MapLibre.Unity
                 return;
             }
 
-            // Other layers: refresh tiles to rebuild with new properties
+            // Vector / circle / heatmap / fillExtrusion / symbol: rebuild only
+            // this layer's GameObjects from the source's cached tile data — no
+            // network fetch and unrelated sources (raster basemap, other
+            // vector layers) keep their loaded tiles instead of being expired
+            // by TileManager.Clear and re-fetched on the next dispatch.
+            if (InvalidateLayer(layerId)) return;
+
+            // Raster / hillshade / terrain / image: no in-place rebuild path
+            // for paint changes yet, so fall back to the global refresh.
             RefreshTiles();
         }
 
@@ -334,6 +349,14 @@ namespace MapLibre.Unity
                 layer.Visibility = value?.ToString() ?? "visible";
             }
 
+            // Per-layer rebuild keeps unrelated sources (raster basemap,
+            // sibling vector layers) from being expired and re-fetched.
+            // visibility="none" or out-of-range zoom is honoured by
+            // InvalidateLayer leaving the layer empty after teardown.
+            if (InvalidateLayer(layerId)) return;
+
+            // Raster / hillshade / terrain / image: fall back to the global
+            // refresh until those layer types support in-place rebuilds.
             RefreshTiles();
         }
 
@@ -464,26 +487,35 @@ namespace MapLibre.Unity
         /// <summary>
         /// Rebuild a single layer's tiles in-place using the source's cached
         /// tile data (no network fetch). Useful after a property change that
-        /// only affects one layer — for example a feature-state hover update.
-        /// Falls back to a no-op for raster / hillshade / terrain / image layers
-        /// (those types don't read feature-state today).
+        /// only affects one layer — for example a feature-state hover update
+        /// or a SetPaintProperty call. Returns false (no-op) for raster /
+        /// hillshade / terrain / image layers; the caller should fall back to
+        /// <see cref="RefreshTiles"/> for those types.
         /// </summary>
-        public void InvalidateLayer(string layerId)
+        /// <returns>True if the layer was matched and rebuilt in place; false
+        /// if the layer type is not supported by this code path.</returns>
+        public bool InvalidateLayer(string layerId)
         {
-            if (!_isInitialized) return;
+            if (!_isInitialized) return false;
             var layer = GetLayer(layerId);
-            if (layer == null) return;
+            if (layer == null) return false;
 
             // Tear down active GameObjects for the layer. Returns false for
             // layer types we don't expose this on (raster/hillshade/terrain) —
             // those still flow through full RefreshTiles when needed.
-            if (!_mapRenderer.InvalidateLayer(layerId)) return;
+            if (!_mapRenderer.InvalidateLayer(layerId)) return false;
+
+            // Visibility / minzoom-maxzoom: leave the layer empty after teardown
+            // so visibility="none" or out-of-range zoom takes effect immediately.
+            // Becomes visible again on the next pan/zoom dispatch when this
+            // method is invoked with the layer back in range.
+            if (string.IsNullOrEmpty(layer.Source) || !layer.IsVisibleAtZoom(State.Zoom))
+                return true;
 
             // Re-show every active tile from the source cache. The cache is
             // populated by the live tile loader, so this is essentially free —
             // no decode, no network. Tiles past the source maxzoom resolve to
             // the same parent tile the dispatch would pick.
-            if (string.IsNullOrEmpty(layer.Source)) return;
             var centerMerc = CoordinateConversion.LngLatToMercator(State.Center);
             float zoom = State.Zoom;
 
@@ -506,6 +538,7 @@ namespace MapLibre.Unity
                         ReShowVectorTileForLayer(layer, tileId, data, centerMerc, zoom);
                 }
             }
+            return true;
         }
 
         private void ReShowVectorTileForLayer(LayerDefinition layer, CanonicalTileID tileId,

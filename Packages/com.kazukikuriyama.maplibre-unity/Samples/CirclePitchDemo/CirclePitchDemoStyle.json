@@ -1,0 +1,46 @@
+{
+    "version": 8,
+    "name": "Circle Pitch Demo",
+    "center": [139.7450, 35.6760],
+    "zoom": 9,
+    "pitch": 55,
+    "sources": {
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet",
+            "attribution": "© OpenMapTiles © OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": { "background-color": "#f0ede8" }
+        },
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "water",
+            "paint": { "fill-color": "#a0c8f0" }
+        },
+        {
+            "id": "landcover",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "paint": { "fill-color": "#cfe6c1", "fill-opacity": 0.4 }
+        },
+        {
+            "id": "road",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "paint": {
+                "line-color": "#c8c8c8",
+                "line-width": 1.2,
+                "line-opacity": 0.8
+            }
+        }
+    ]
+}

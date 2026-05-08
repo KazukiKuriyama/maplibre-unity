@@ -1,0 +1,23 @@
+# Dependabot configuration.
+# Only github-actions is tracked here — Unity Package Manager (UPM) is not
+# supported by Dependabot, so Newtonsoft.Json / Input System / etc. updates
+# are still managed by hand via Packages/manifest.json.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-minor:
+        update-types:
+          - "minor"
+          - "patch"

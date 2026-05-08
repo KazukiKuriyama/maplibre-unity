@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using MapLibre.Unity.Expressions;
 using MapLibre.Unity.VectorTile;
 using Newtonsoft.Json.Linq;
@@ -123,6 +124,78 @@ namespace MapLibre.Unity.Tests.EditMode
             var e = ParseExpr(
                 "[\"interpolate\", [\"linear\"], [\"zoom\"], 5, 10, 10, 30]");
             Assert.AreEqual(30f, e.EvaluateFloat(new EvaluationContext(15f)));
+        }
+
+        // Runtime AddLayer typically passes paint values as plain C# arrays
+        // (`new object[] { "interpolate", ... }`) instead of JArray. The parser
+        // must normalize them — otherwise the array is treated as a literal and
+        // colour expressions silently evaluate to the default (black).
+        [Test]
+        public void Parse_AcceptsPlainCSharpArrayAsExpression()
+        {
+            var raw = new object[]
+            {
+                "interpolate",
+                new object[] { "linear" },
+                new object[] { "zoom" },
+                0, 10,
+                10, 30,
+            };
+            var e = ExpressionParser.Parse(raw);
+            Assert.AreEqual(20f, e.EvaluateFloat(new EvaluationContext(5f)));
+        }
+
+        [Test]
+        public void Parse_AcceptsPlainCSharpArrayForColorInterpolation()
+        {
+            // Same shape as ColorInterpolationDemo. At zoom 10 (midpoint of
+            // [8, 12]) RGB lerp yields (0.5, 0, 0.5) — a real colour, not the
+            // black default that signals "expression not recognised".
+            var raw = new object[]
+            {
+                "interpolate",
+                new object[] { "linear" },
+                new object[] { "zoom" },
+                8,  "#ff0000",
+                12, "#0000ff",
+            };
+            var e = ExpressionParser.Parse(raw, isColor: true);
+            var c = e.EvaluateColor(new EvaluationContext(10f));
+            Assert.That(c.r, Is.EqualTo(0.5f).Within(0.01f));
+            Assert.That(c.g, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(c.b, Is.EqualTo(0.5f).Within(0.01f));
+        }
+
+        // text-font is a string-array literal (e.g. ["Open Sans Regular"]) —
+        // not an expression. Earlier the parser would route it through
+        // ParseExpression with an "unknown operator" warning and collapse to
+        // LiteralExpression(null), silently breaking SDF glyph fetching. Both
+        // JArray (style JSON) and string[] (runtime AddLayer) inputs must
+        // round-trip the array as an iterable so SymbolRenderer can pick the
+        // first font name.
+        [Test]
+        public void Parse_LiteralStringArrayFromCSharpRoundTrips()
+        {
+            var raw = new[] { "Noto Sans Regular", "Arial Unicode MS" };
+            var e = ExpressionParser.Parse(raw);
+            var val = e.Evaluate(new EvaluationContext(0f));
+            Assert.IsInstanceOf<System.Collections.IEnumerable>(val);
+            var list = ((System.Collections.IEnumerable)val).Cast<object>().ToList();
+            Assert.AreEqual(2, list.Count);
+            Assert.AreEqual("Noto Sans Regular", list[0]);
+            Assert.AreEqual("Arial Unicode MS", list[1]);
+        }
+
+        [Test]
+        public void Parse_LiteralStringArrayFromJsonRoundTrips()
+        {
+            var e = ParseExpr("[\"Open Sans Regular\", \"Arial Unicode MS\"]");
+            var val = e.Evaluate(new EvaluationContext(0f));
+            Assert.IsInstanceOf<System.Collections.IEnumerable>(val);
+            var list = ((System.Collections.IEnumerable)val).Cast<object>().ToList();
+            Assert.AreEqual(2, list.Count);
+            Assert.AreEqual("Open Sans Regular", list[0]);
+            Assert.AreEqual("Arial Unicode MS", list[1]);
         }
 
         [Test]

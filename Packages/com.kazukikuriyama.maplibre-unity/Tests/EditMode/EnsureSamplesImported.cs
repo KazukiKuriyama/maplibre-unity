@@ -2,42 +2,39 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
 
 namespace MapLibre.Unity.Tests.EditMode
 {
     /// <summary>
-    /// Dev-only bootstrap: on Editor startup, ensure the package's
-    /// "All Samples" group is imported and every imported scene is
-    /// registered in <see cref="EditorBuildSettings"/> so the PlayMode
-    /// smoke test can iterate them.
+    /// Dev-only bootstrap: on Editor startup, register every sample scene
+    /// shipped under <c>Packages/com.kazukikuriyama.maplibre-unity/Samples/</c>
+    /// in <see cref="EditorBuildSettings"/> so HomeSceneLoader and the
+    /// PlayMode smoke test can resolve them by name.
     ///
     /// This file lives under Tests/ so the release workflow's
-    /// <c>rm -rf Tests</c> step strips it from the UPM tarball — end
-    /// users installing the package via UPM never see this code.
-    /// The <c>UNITY_INCLUDE_TESTS</c> define constraint on the Tests
-    /// asmdef gates compilation to environments that have the test
-    /// framework active (this repo's Editor sessions and GameCI).
+    /// <c>rm -rf Tests</c> step strips it from the UPM tarball — end users
+    /// installing the package via UPM never see this code. They are
+    /// expected to add scenes to Build Settings themselves the first
+    /// time they want to launch HomeScene.
     /// </summary>
     [InitializeOnLoad]
     internal static class EnsureSamplesImported
     {
-        private const string PackageName = "com.kazukikuriyama.maplibre-unity";
-        private const string SampleDisplayName = "All Samples";
+        private const string SamplesRelativePath =
+            "Packages/com.kazukikuriyama.maplibre-unity/Samples";
 
-        // SessionState marker prevents the import logic from re-running
-        // after the recompile that follows AssetDatabase.Refresh, which
+        // SessionState marker prevents the registration logic from re-running
+        // after the recompile that follows AssetDatabase changes, which
         // would otherwise loop indefinitely as InitializeOnLoad fires
         // again on every domain reload.
-        private const string SessionMarker = "MapLibreUnity.SamplesAutoImportAttempted";
+        private const string SessionMarker =
+            "MapLibreUnity.SamplesAutoRegistrationAttempted";
 
         static EnsureSamplesImported()
         {
-            // Defer to the next editor tick so PackageManager has fully
-            // initialized; Sample.FindByPackage can return an empty
-            // enumerable when called inside the static constructor on a
-            // cold editor start.
+            // Defer to the next editor tick; some Unity APIs (e.g. AssetDatabase)
+            // are not safe to call from the static constructor.
             EditorApplication.delayCall += RunOnce;
         }
 
@@ -48,67 +45,32 @@ namespace MapLibre.Unity.Tests.EditMode
 
             try
             {
-                EnsureImported();
+                RegisterSampleScenes();
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[MapLibre.Unity] Sample auto-import skipped: {e.Message}");
+                Debug.LogWarning($"[MapLibre.Unity] Sample scene auto-registration skipped: {e.Message}");
             }
         }
 
-        private static void EnsureImported()
+        private static void RegisterSampleScenes()
         {
-            Sample target = default;
-            bool found = false;
-            foreach (var sample in Sample.FindByPackage(PackageName, null))
-            {
-                if (sample.displayName == SampleDisplayName)
-                {
-                    target = sample;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
+            string projectRoot = Directory.GetParent(Application.dataPath).FullName;
+            string absoluteSamplesRoot = Path.Combine(projectRoot, SamplesRelativePath);
+            if (!Directory.Exists(absoluteSamplesRoot))
             {
                 Debug.LogWarning(
-                    $"[MapLibre.Unity] Sample '{SampleDisplayName}' not found in package '{PackageName}'. " +
+                    $"[MapLibre.Unity] Sample folder not found at '{SamplesRelativePath}'. " +
                     "PlayMode smoke tests will report no scenes in EditorBuildSettings.");
                 return;
             }
 
-            if (!target.isImported)
-            {
-                Debug.Log($"[MapLibre.Unity] Importing sample '{SampleDisplayName}' for PlayMode smoke tests...");
-                bool ok = target.Import(
-                    Sample.ImportOptions.HideImportWindow |
-                    Sample.ImportOptions.OverridePreviousImports);
-                if (!ok)
-                {
-                    Debug.LogWarning("[MapLibre.Unity] Sample.Import returned false; aborting auto-setup.");
-                    return;
-                }
-                AssetDatabase.Refresh();
-            }
-
-            PopulateBuildSettings(target.importPath);
-        }
-
-        private static void PopulateBuildSettings(string importPath)
-        {
-            if (string.IsNullOrEmpty(importPath) || !Directory.Exists(importPath))
-            {
-                Debug.LogWarning($"[MapLibre.Unity] Sample import path missing: {importPath}");
-                return;
-            }
-
-            string projectRoot = Directory.GetParent(Application.dataPath).FullName;
             var existingPaths = new HashSet<string>(StringComparer.Ordinal);
             var scenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
             foreach (var scene in scenes) existingPaths.Add(scene.path);
 
             int added = 0;
-            foreach (var absoluteScenePath in Directory.EnumerateFiles(importPath, "*.unity", SearchOption.AllDirectories))
+            foreach (var absoluteScenePath in Directory.EnumerateFiles(absoluteSamplesRoot, "*.unity", SearchOption.AllDirectories))
             {
                 var relative = Path.GetRelativePath(projectRoot, absoluteScenePath).Replace('\\', '/');
                 if (existingPaths.Contains(relative)) continue;
@@ -117,14 +79,24 @@ namespace MapLibre.Unity.Tests.EditMode
                 added++;
             }
 
-            if (added == 0) return;
+            // Drop entries left over from the legacy opt-in import flow that
+            // copied samples to Assets/Samples/MapLibre Unity/<version>/...
+            // After the move to bundled samples those paths no longer exist,
+            // and would surface as "Missing" entries in Build Settings.
+            int removed = scenes.RemoveAll(s =>
+                s.path.StartsWith("Assets/Samples/MapLibre Unity/", StringComparison.Ordinal));
+
+            if (added == 0 && removed == 0) return;
 
             // Sort so HomeScene boots first; the rest in stable alphabetical
             // order. PlayMode smoke test iterates in build-index order.
             scenes.Sort(CompareScenes);
             EditorBuildSettings.scenes = scenes.ToArray();
 
-            Debug.Log($"[MapLibre.Unity] Registered {added} sample scene(s) in EditorBuildSettings.");
+            if (removed > 0)
+                Debug.Log($"[MapLibre.Unity] Removed {removed} legacy Assets/Samples/MapLibre Unity/ entry/entries from EditorBuildSettings.");
+            if (added > 0)
+                Debug.Log($"[MapLibre.Unity] Registered {added} sample scene(s) in EditorBuildSettings.");
         }
 
         private static int CompareScenes(EditorBuildSettingsScene a, EditorBuildSettingsScene b)

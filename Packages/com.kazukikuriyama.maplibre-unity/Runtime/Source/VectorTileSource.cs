@@ -43,8 +43,14 @@ namespace MapLibre.Unity.Source
         /// <summary>
         /// Timeout in seconds for background PBF parsing per tile.
         /// If parsing exceeds this duration, the task is cancelled and an error is reported.
+        /// Includes ThreadPool scheduling latency, so it must be generous enough to cover
+        /// large planet tiles on player builds with constrained core counts. Low-zoom
+        /// tiles over dense regions (e.g. openfreemap planet z8 over Asia) genuinely
+        /// take tens of seconds to parse on a single thread; the Profiler being
+        /// attached pushes this further. 90s leaves headroom for those cases without
+        /// holding broken tiles forever.
         /// </summary>
-        private const float ParseTimeoutSeconds = 10f;
+        private const float ParseTimeoutSeconds = 90f;
 
         private struct TileRequest
         {
@@ -246,11 +252,10 @@ namespace MapLibre.Unity.Source
                 return result;
             }, token);
 
-            float elapsed = 0f;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             while (!parseTask.IsCompleted)
             {
-                elapsed += Time.deltaTime;
-                if (elapsed > ParseTimeoutSeconds)
+                if (watch.Elapsed.TotalSeconds > ParseTimeoutSeconds)
                 {
                     cts.Cancel();
                     while (!parseTask.IsCompleted)
@@ -331,11 +336,12 @@ namespace MapLibre.Unity.Source
 
                     yield return request.SendWebRequest();
 
-                    // PlayMode テストの scene teardown など、Unity 内部の cleanup が
-                    // CancelRequest/Dispose を経ずに UnityWebRequest の native handle を
-                    // 無効化することがある。その場合、_activeWebRequests には残ったまま
-                    // request.result の getter が NullReferenceException を投げるため、
-                    // ガードプロパティに try-catch して外部 dispose を検知する。
+                    // Unity-internal cleanup (e.g. PlayMode test scene teardown) can
+                    // invalidate the UnityWebRequest's native handle without going
+                    // through CancelRequest/Dispose. The entry stays in
+                    // _activeWebRequests but the request.result getter throws
+                    // NullReferenceException, so guard a probe property with
+                    // try-catch to detect external disposal.
                     bool externallyDisposed = false;
                     try { _ = request.isDone; }
                     catch (System.NullReferenceException) { externallyDisposed = true; }
@@ -397,7 +403,7 @@ namespace MapLibre.Unity.Source
             if (rawData != null)
             {
 
-                // バックグラウンドスレッドで gzip 解凍 + PBF パース（CancellationToken 付き）
+                // gzip decompress + PBF parse on a background thread (cancellable)
                 var cts = new CancellationTokenSource();
                 _activeParseTasks[tileId] = cts;
                 var token = cts.Token;
@@ -415,15 +421,16 @@ namespace MapLibre.Unity.Source
                     return result;
                 }, token);
 
-                // バックグラウンド処理完了をタイムアウト付きで待つ
-                float elapsed = 0f;
+                // Wait for background completion with a wall-clock timeout. Stopwatch
+                // is used (not Time.deltaTime) so the timer is unaffected by Time.timeScale
+                // or Time.maximumDeltaTime clamping during low frame rates.
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 while (!parseTask.IsCompleted)
                 {
-                    elapsed += Time.deltaTime;
-                    if (elapsed > ParseTimeoutSeconds)
+                    if (watch.Elapsed.TotalSeconds > ParseTimeoutSeconds)
                     {
                         cts.Cancel();
-                        // タスクの終了を待つ（Cancel 後すぐには終わらない場合がある）
+                        // Wait for the task to wind down (cancellation isn't instant)
                         while (!parseTask.IsCompleted)
                             yield return null;
                         break;
@@ -460,8 +467,26 @@ namespace MapLibre.Unity.Source
                 // 404 = tile has no data. MapLibre GL JS treats this as an empty
                 // tile (state=loaded, no features) rather than an error, since
                 // sparse vector datasets commonly have gaps.
-                long status = request != null ? request.responseCode : 0;
-                string errorText = request != null ? request.error : (lastError ?? "no response");
+                //
+                // The request may have been externally disposed (e.g. by a
+                // SetStyle teardown that ran while we were yielding). Probing
+                // any property on a disposed UnityWebRequest throws NRE even
+                // though the managed reference is non-null, so guard here
+                // mirroring the SendWebRequest-loop check above.
+                long status = 0;
+                string errorText = lastError ?? "no response";
+                if (request != null)
+                {
+                    try
+                    {
+                        status = request.responseCode;
+                        errorText = request.error ?? errorText;
+                    }
+                    catch (System.NullReferenceException)
+                    {
+                        // request was externally disposed; fall back to lastError
+                    }
+                }
                 request?.Dispose();
 
                 if (status == 404)

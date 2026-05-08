@@ -1,0 +1,54 @@
+name: Feature request
+description: Propose a new capability or API.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MapLibre Unity tracks the [MapLibre Style Spec](https://maplibre.org/maplibre-style-spec/)
+        and the [MapLibre GL JS API](https://maplibre.org/maplibre-gl-js/docs/API/).
+        Features that already exist upstream are easier to accept than novel
+        Unity-only ideas — please link the upstream counterpart when you can.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What problem does this solve? Concrete project / scene context helps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed API surface
+      description: |
+        If known, sketch the C# API / inspector field / style property
+        you would expect. MapLibre GL JS or Native parity is a strong signal.
+      placeholder: |
+        // Example: matching maplibre-gl-js' fitScreenCoordinates
+        map.FitScreenCoordinates(p0, p1, bearing, options);
+    validations:
+      required: false
+
+  - type: input
+    id: upstream-reference
+    attributes:
+      label: Upstream reference
+      description: Link to MapLibre GL JS / Native docs, issues, or playground entry.
+      placeholder: "https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#fitscreencoordinates"
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How are you handling this today (if at all)?
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues / discussions and this is not a duplicate.
+          required: true

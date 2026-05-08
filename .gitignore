@@ -7,6 +7,8 @@ mono_crash.*.json
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/[Bb]uild.app/
+/[Bb]uild.app.meta
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
@@ -52,8 +54,9 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# TextMeshPro Essential Resources (users import via Window > TextMeshPro > Import TMP Essential Resources)
+# TextMeshPro Essential Resources (auto-imported on first editor load — see TMPEssentialsCheck.cs)
 /[Aa]ssets/TextMesh Pro/
+/[Aa]ssets/TextMesh Pro.meta
 Assets/Screenshots
 Assets/Screenshots.meta
 

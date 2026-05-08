@@ -30,7 +30,12 @@ namespace MapLibre.Unity.Source
     /// </summary>
     public class GlyphAtlas
     {
-        // Mapbox / MapLibre SDF glyphs are 24x24 with 3px padding per side.
+        // Mapbox glyph PBFs encode SDF distance with a 3-pixel buffer on each
+        // side of the glyph metrics. The bitmap itself has dimensions
+        // (width + 2*Buffer) x (height + 2*Buffer), even though the protobuf
+        // stores width/height without the buffer.
+        public const int SdfBuffer = 3;
+
         // Atlas starts at 256x256 (≈ 100 glyphs), doubles on overflow.
         private const int InitialAtlasSize = 256;
         private const int MaxAtlasSize = 4096;
@@ -118,10 +123,17 @@ namespace MapLibre.Unity.Source
                 return emptyEntry;
             }
 
-            // Find a packing slot, growing the texture if necessary.
-            EnsureRoom(w, h);
+            // Mapbox encodes the SDF with a 3-pixel buffer around the glyph
+            // metrics, so the bitmap is (w+6) x (h+6) bytes even though the
+            // PBF reports the glyph dimensions without buffer. Pack the full
+            // buffered bitmap so the SDF gradient at the glyph edge has room
+            // to render correctly.
+            int bw = w + 2 * SdfBuffer;
+            int bh = h + 2 * SdfBuffer;
 
-            _texture.SetPixels32(_shelfX, _shelfY, w, h, BitmapToColor32(g.Bitmap, w, h));
+            EnsureRoom(bw, bh);
+
+            _texture.SetPixels32(_shelfX, _shelfY, bw, bh, BitmapToColor32(g.Bitmap, bw, bh));
             _texture.Apply(updateMipmaps: false);
 
             var entry = new AtlasGlyph
@@ -134,13 +146,13 @@ namespace MapLibre.Unity.Source
                 UVRect = new Rect(
                     (float)_shelfX / _texture.width,
                     (float)_shelfY / _texture.height,
-                    (float)w / _texture.width,
-                    (float)h / _texture.height),
+                    (float)bw / _texture.width,
+                    (float)bh / _texture.height),
             };
             perFont[g.Id] = entry;
 
-            _shelfX += w;
-            if (h > _shelfHeight) _shelfHeight = h;
+            _shelfX += bw;
+            if (bh > _shelfHeight) _shelfHeight = bh;
             return entry;
         }
 
@@ -205,16 +217,23 @@ namespace MapLibre.Unity.Source
 
         private static Color32[] BitmapToColor32(byte[] alpha, int w, int h)
         {
-            // PBF glyphs ship a single-channel SDF bitmap; expand into RGBA32
-            // so SetPixels32 can take it. Only the alpha channel is read by
-            // the SDF text shader.
+            // PBF glyph bitmaps are stored top-row-first (image-y-down), but
+            // Texture2D.SetPixels32 places pixels[0] at the bottom-left of the
+            // destination rect (y-up). Copying byte-for-byte produces an atlas
+            // that is vertically flipped per glyph, which combined with the
+            // mesh's V-up UV convention renders text upside-down. Reverse rows
+            // here so the glyph's bottom row lands at the bottom of the slot.
             var pixels = new Color32[w * h];
-            int n = w * h;
-            int len = System.Math.Min(alpha.Length, n);
+            int total = w * h;
+            int len = System.Math.Min(alpha.Length, total);
             for (int i = 0; i < len; i++)
             {
+                int srcRow = i / w;          // 0 = top of glyph
+                int srcCol = i % w;
+                int dstRow = h - 1 - srcRow; // 0 = bottom of texture rect
+                int dstIndex = dstRow * w + srcCol;
                 byte v = alpha[i];
-                pixels[i] = new Color32(v, v, v, v);
+                pixels[dstIndex] = new Color32(v, v, v, v);
             }
             return pixels;
         }

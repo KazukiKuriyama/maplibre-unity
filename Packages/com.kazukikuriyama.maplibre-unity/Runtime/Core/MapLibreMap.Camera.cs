@@ -114,6 +114,7 @@ namespace MapLibre.Unity
                 options.Zoom ?? State.Zoom,
                 options.Bearing ?? State.Bearing,
                 options.Pitch ?? State.Pitch);
+            _inputHandler?.SyncTargetFromMapState();
         }
 
         /// <summary>Set the map center (no animation). Matches map.setCenter().</summary>
@@ -128,6 +129,10 @@ namespace MapLibre.Unity
         {
             Animator?.CancelAnimation();
             if (State != null) State.Zoom = zoom;
+            // MapInputHandler keeps its own smooth-damped zoom target; without
+            // re-syncing it the next ApplySmoothZoom would walk State.Zoom
+            // back to whatever the user had cached before this call.
+            _inputHandler?.SyncTargetFromMapState();
         }
 
         /// <summary>Set the bearing in degrees (no animation). Matches map.setBearing().</summary>
@@ -250,7 +255,17 @@ namespace MapLibre.Unity
                 _mapCamera.transform.localRotation = options.Rotation.Value;
 
             _cameraController.ExternallyDriven = true;
+            // Cancel any in-flight tween — letting an animator continue to push
+            // its own MapState target while the external rig drives the
+            // transform produces zoom / center oscillation between the two.
+            Animator?.CancelAnimation();
             DeriveMapStateFromCameraTransform();
+            // Re-sync the smooth-damped zoom / pitch targets in MapInputHandler
+            // so its ApplySmoothZoom doesn't drag State.Zoom back toward the
+            // value cached before the external rig took over. Without this,
+            // orbit / dolly setups visibly oscillate the zoom each frame even
+            // when the input handler is supposed to be inert.
+            _inputHandler?.SyncTargetFromMapState();
         }
 
         /// <summary>
@@ -312,6 +327,13 @@ namespace MapLibre.Unity
 
             // Push to MapState in one shot. SetState clamps zoom/pitch, normalizes bearing.
             State.SetState(newCenter, zoom, bearing, pitch);
+
+            // OnMapStateChanged routes back to MapCamera.UpdateFromMapState which
+            // early-returns under ExternallyDriven, so the clip plane bookkeeping
+            // there is skipped. Recompute manually from the actual transform —
+            // otherwise an orbit whose radius exceeds the previous far-plane
+            // (set when the map drove the camera) clips the entire scene.
+            _cameraController.AdjustClipPlanes(Mathf.Max(pos.y, 0.0001f), State.Pitch);
         }
 
         /// <summary>
@@ -321,6 +343,11 @@ namespace MapLibre.Unity
         public void RefreshTiles()
         {
             if (!_isInitialized) return;
+            // Caller is doing the refresh themselves — cancel the deferred
+            // safety-net set by AddLayer(triggerRefresh:false) so the explicit
+            // batch pattern (AddLayer false × N + RefreshTiles) still results
+            // in exactly one refresh.
+            _pendingLayerRefresh = false;
             _tileManager?.Clear();
             _needsTileUpdate = true;
         }

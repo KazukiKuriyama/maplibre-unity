@@ -711,6 +711,93 @@ namespace MapLibre.Unity.Expressions
         public override bool UsesFeatureState() => _arg != null && _arg.UsesFeatureState();
     }
 
+    /// <summary>
+    /// MapLibre Style Spec type-assertion: <c>["boolean", value, ...fallbacks]</c>.
+    /// Returns the first argument that evaluates to a boolean; otherwise
+    /// returns false. Common use: <c>["boolean", ["feature-state", "hover"], false]</c>
+    /// to coerce missing feature-state to a definite false.
+    /// </summary>
+    public class BooleanAssertExpression : Expression
+    {
+        private readonly Expression[] _args;
+        public BooleanAssertExpression(Expression[] args) { _args = args; IsConstant = false; }
+
+        public override object Evaluate(EvaluationContext ctx)
+        {
+            if (_args == null) return false;
+            for (int i = 0; i < _args.Length; i++)
+            {
+                var v = _args[i]?.Evaluate(ctx);
+                if (v is bool b) return b;
+            }
+            return false;
+        }
+
+        public override bool UsesFeatureState()
+        {
+            if (_args == null) return false;
+            for (int i = 0; i < _args.Length; i++)
+                if (_args[i] != null && _args[i].UsesFeatureState()) return true;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// MapLibre Style Spec type-assertion: <c>["string", value, ...fallbacks]</c>.
+    /// </summary>
+    public class StringAssertExpression : Expression
+    {
+        private readonly Expression[] _args;
+        public StringAssertExpression(Expression[] args) { _args = args; IsConstant = false; }
+
+        public override object Evaluate(EvaluationContext ctx)
+        {
+            if (_args == null) return "";
+            for (int i = 0; i < _args.Length; i++)
+            {
+                var v = _args[i]?.Evaluate(ctx);
+                if (v is string s) return s;
+            }
+            return "";
+        }
+
+        public override bool UsesFeatureState()
+        {
+            if (_args == null) return false;
+            for (int i = 0; i < _args.Length; i++)
+                if (_args[i] != null && _args[i].UsesFeatureState()) return true;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// MapLibre Style Spec type-assertion: <c>["number", value, ...fallbacks]</c>.
+    /// </summary>
+    public class NumberAssertExpression : Expression
+    {
+        private readonly Expression[] _args;
+        public NumberAssertExpression(Expression[] args) { _args = args; IsConstant = false; }
+
+        public override object Evaluate(EvaluationContext ctx)
+        {
+            if (_args == null) return 0f;
+            for (int i = 0; i < _args.Length; i++)
+            {
+                var v = _args[i]?.Evaluate(ctx);
+                if (IsNumeric(v)) return (float)ToDouble(v);
+            }
+            return 0f;
+        }
+
+        public override bool UsesFeatureState()
+        {
+            if (_args == null) return false;
+            for (int i = 0; i < _args.Length; i++)
+                if (_args[i] != null && _args[i].UsesFeatureState()) return true;
+            return false;
+        }
+    }
+
     public class DowncaseExpression : Expression
     {
         private readonly Expression _arg;

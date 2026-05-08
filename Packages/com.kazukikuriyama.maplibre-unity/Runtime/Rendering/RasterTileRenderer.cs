@@ -13,6 +13,7 @@ namespace MapLibre.Unity.Rendering
         private readonly Pool.TileObjectPool _tilePool;
         private readonly Dictionary<CanonicalTileID, ActiveTile> _activeTileObjects = new();
         private readonly MaterialPropertyBlock _propertyBlock = new();
+        private readonly float _yOffset;
         private static readonly int MainTexPropertyId = Shader.PropertyToID("_MainTex");
         private static readonly int MainTexSTPropertyId = Shader.PropertyToID("_MainTex_ST");
         private static readonly int OpacityPropertyId = Shader.PropertyToID("_Opacity");
@@ -33,9 +34,15 @@ namespace MapLibre.Unity.Rendering
             public bool IsParentFallback;
         }
 
-        public RasterTileRenderer(Pool.TileObjectPool tilePool)
+        /// <param name="layerOrder">
+        /// Layer index in style (0-based). Drives the y offset that prevents
+        /// z-fighting when multiple raster layers are stacked (e.g. a basemap
+        /// + a procedural overlay added via AddSource(ICustomRasterSource)).
+        /// </param>
+        public RasterTileRenderer(Pool.TileObjectPool tilePool, int layerOrder = 0)
         {
             _tilePool = tilePool;
+            _yOffset = layerOrder * 0.001f;
         }
 
         public void ShowTile(CanonicalTileID tileId, Texture2D texture,
@@ -176,6 +183,7 @@ namespace MapLibre.Unity.Rendering
 
             var tileCenterMerc = new MercatorCoordinate(tileCenterX, tileCenterY);
             Vector3 worldPos = CoordinateConversion.MercatorToUnityWorld(tileCenterMerc, mapCenter, worldScale);
+            worldPos.y = _yOffset;
 
             go.transform.localPosition = worldPos;
 

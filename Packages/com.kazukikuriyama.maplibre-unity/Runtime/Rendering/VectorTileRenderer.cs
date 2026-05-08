@@ -18,6 +18,12 @@ namespace MapLibre.Unity.Rendering
     public class VectorTileRenderer : ILayerRenderer
     {
         private readonly Dictionary<CanonicalTileID, List<GameObject>> _activeTileObjects = new();
+        // Snapshot of objects awaiting replacement during an in-place rebuild
+        // (feature-state invalidation). Old GOs stay visible until matching new
+        // meshes arrive from the re-dispatch — prevents the flicker that a
+        // hard Clear() would cause on every SetFeatureState call.
+        private readonly Dictionary<CanonicalTileID, List<GameObject>> _staleTileObjects = new();
+        private int _staleSweepDeadlineFrame = -1;
         private readonly HashSet<CanonicalTileID> _requestedTiles = new();
         private readonly Transform _parent;
         private readonly Material _fillMaterial;
@@ -724,6 +730,11 @@ namespace MapLibre.Unity.Rendering
         /// </summary>
         public void ProcessMeshQueue()
         {
+            // Stragglers from a previous in-place rebuild whose new meshes
+            // never arrived (e.g. the feature was filtered out post-rebuild).
+            if (_staleSweepDeadlineFrame >= 0 && Time.frameCount >= _staleSweepDeadlineFrame)
+                SweepStaleTileObjects();
+
             int processed = 0;
             while (processed < MaxMeshesPerFrame)
             {
@@ -813,8 +824,47 @@ namespace MapLibre.Unity.Rendering
                 }
                 objects.Add(go);
 
+                // In-place rebuild: now that the new GO is live, retire the
+                // matching stale GO (same tile, same target name) so the
+                // visible scene transitions in one frame instead of going
+                // through a "torn down → empty → new" gap.
+                ReplaceStaleObject(pending.TileId, targetName);
+
                 processed++;
             }
+        }
+
+        private void ReplaceStaleObject(CanonicalTileID tileId, string targetName)
+        {
+            if (!_staleTileObjects.TryGetValue(tileId, out var stale)) return;
+            for (int i = stale.Count - 1; i >= 0; i--)
+            {
+                var staleGo = stale[i];
+                if (staleGo == null) { stale.RemoveAt(i); continue; }
+                if (staleGo.name != targetName) continue;
+                var sf = staleGo.GetComponent<MeshFilter>();
+                if (sf != null && sf.sharedMesh != null) Object.Destroy(sf.sharedMesh);
+                Object.Destroy(staleGo);
+                stale.RemoveAt(i);
+                break;
+            }
+            if (stale.Count == 0) _staleTileObjects.Remove(tileId);
+        }
+
+        private void SweepStaleTileObjects()
+        {
+            foreach (var kv in _staleTileObjects)
+            {
+                foreach (var go in kv.Value)
+                {
+                    if (go == null) continue;
+                    var sf = go.GetComponent<MeshFilter>();
+                    if (sf != null && sf.sharedMesh != null) Object.Destroy(sf.sharedMesh);
+                    Object.Destroy(go);
+                }
+            }
+            _staleTileObjects.Clear();
+            _staleSweepDeadlineFrame = -1;
         }
 
         /// <summary>
@@ -1009,6 +1059,32 @@ namespace MapLibre.Unity.Rendering
             var keys = new List<CanonicalTileID>(_activeTileObjects.Keys);
             foreach (var key in keys)
                 HideTile(key);
+            SweepStaleTileObjects();
+        }
+
+        /// <summary>
+        /// Soft variant of <see cref="Clear"/> for feature-state-driven rebuilds.
+        /// Retains every active GameObject under a stale snapshot so they stay
+        /// visible while the re-dispatched meshes are computed; ProcessMeshQueue
+        /// retires them one-by-one as the matching new GOs arrive. Without this
+        /// path, every SetFeatureState call would tear down the entire layer
+        /// and the polygons that were not the hover target would briefly
+        /// disappear too.
+        /// </summary>
+        public void InvalidateInPlace()
+        {
+            lock (_meshQueue) { _meshQueue.Clear(); }
+            _requestedTiles.Clear();
+            foreach (var kv in _activeTileObjects)
+            {
+                if (!_staleTileObjects.TryGetValue(kv.Key, out var list))
+                    _staleTileObjects[kv.Key] = list = new List<GameObject>(kv.Value.Count);
+                list.AddRange(kv.Value);
+            }
+            _activeTileObjects.Clear();
+            // Sweep any stragglers ~0.5s later in case the rebuild emits no
+            // mesh for a tile (e.g. all features filtered out post-state).
+            _staleSweepDeadlineFrame = Time.frameCount + 30;
         }
 
         public void Dispose()

@@ -1,49 +1,34 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
-using System.IO;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace MapLibre.Unity.Editor
 {
     /// <summary>
-    /// Checks whether TMP Essential Resources have been imported.
-    /// Shows a dialog prompting the user to import them if missing.
+    /// Ensures TMP Essential Resources are imported. Silently imports them
+    /// on editor load when missing — Symbol layers (text/icons) require them.
     /// </summary>
     [InitializeOnLoad]
     internal static class TMPEssentialsCheck
     {
-        private const string SkipSessionKey = "MapLibre_SkipTMPCheck";
+        private const string AttemptedSessionKey = "MapLibre_TMPImportAttempted";
 
         static TMPEssentialsCheck()
         {
-            // Delay check to avoid running during domain reload
             EditorApplication.delayCall += CheckTMPEssentials;
         }
 
         private static void CheckTMPEssentials()
         {
-            if (SessionState.GetBool(SkipSessionKey, false))
-                return;
-
             if (IsTMPEssentialsImported())
                 return;
 
-            int choice = EditorUtility.DisplayDialogComplex(
-                "MapLibre Unity - TextMeshPro Setup",
-                "MapLibre Unity のシンボルレイヤー（テキスト・アイコン）には TMP Essential Resources が必要です。\n\n" +
-                "インポートしますか？",
-                "インポート",       // 0
-                "今回はスキップ",    // 1
-                "");                // 2
+            if (SessionState.GetBool(AttemptedSessionKey, false))
+                return;
 
-            if (choice == 0)
-            {
-                ImportTMPEssentials();
-            }
-            else
-            {
-                // Don't ask again this session
-                SessionState.SetBool(SkipSessionKey, true);
-            }
+            SessionState.SetBool(AttemptedSessionKey, true);
+            ImportTMPEssentials();
         }
 
         private static bool IsTMPEssentialsImported()
@@ -54,19 +39,26 @@ namespace MapLibre.Unity.Editor
 
         private static void ImportTMPEssentials()
         {
-            // TMP Essential Resources is bundled inside the TMP package
-            string packagePath = "Packages/com.unity.textmeshpro/Package Resources/TMP Essential Resources.unitypackage";
-            if (File.Exists(packagePath))
+            // Unity 6+ ships TMP inside com.unity.ugui; older versions ship it as
+            // com.unity.textmeshpro. Resolve the package's actual path (PackageCache
+            // adds a hash suffix, so a hard-coded path won't survive upgrades).
+            string[] candidatePackages = { "com.unity.ugui", "com.unity.textmeshpro" };
+            foreach (var pkgName in candidatePackages)
             {
-                AssetDatabase.ImportPackage(packagePath, false);
-                Debug.Log("[MapLibre] TMP Essential Resources をインポートしました。");
+                var info = PackageInfo.FindForPackageName(pkgName);
+                if (info == null) continue;
+
+                string path = Path.Combine(info.resolvedPath, "Package Resources", "TMP Essential Resources.unitypackage");
+                if (!File.Exists(path)) continue;
+
+                AssetDatabase.ImportPackage(path, false);
+                Debug.Log($"[MapLibre] Imported TMP Essential Resources from {pkgName}.");
+                return;
             }
-            else
-            {
-                Debug.LogWarning(
-                    "[MapLibre] TMP Essential Resources のパッケージが見つかりません。\n" +
-                    "Window > TextMeshPro > Import TMP Essential Resources から手動でインポートしてください。");
-            }
+
+            Debug.LogWarning(
+                "[MapLibre] TMP Essential Resources package not found.\n" +
+                "Please import it manually via Window > TextMeshPro > Import TMP Essential Resources.");
         }
     }
 }

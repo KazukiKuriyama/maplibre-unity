@@ -8,18 +8,129 @@ on:
 permissions:
   contents: write
   checks: write
+  # Required so the reusable test.yml (which posts PR check annotations) can
+  # be invoked via workflow_call — the called workflow's job-level permissions
+  # must be a subset of the caller's. Without this the run dies at startup
+  # with "nested job 'test' is requesting 'pull-requests: write', but is only
+  # allowed 'pull-requests: none'".
+  pull-requests: write
 
 jobs:
   test:
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
-  release:
+  build:
     needs: test
+    name: Build ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    env:
+      # game-ci/unity-builder@v4.6.0 still ships with Node 20; opt the runner
+      # into Node 24 so the action survives the 2026-06-02 default switch.
+      # Mirrors test.yml — drop once unity-builder ships v5+.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - targetPlatform: StandaloneWindows64
+            artifactName: windows
+            archiveExt: zip
+          - targetPlatform: StandaloneOSX
+            artifactName: macos
+            # macOS .app bundles contain symlinks (Frameworks → Versions/Current).
+            # zip drops them by default, breaking the bundle; tar.gz preserves them.
+            archiveExt: tar.gz
+    steps:
+      - name: Free disk space
+        run: |
+          echo "=== Before ==="
+          df -h /
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/graalvm
+          sudo rm -rf /usr/local/.ghcup
+          sudo docker system prune -af || true
+          echo "=== After ==="
+          df -h /
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: Library
+          key: Library-Build-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-Build-${{ matrix.targetPlatform }}-
+            Library-
+
+      - name: Inject release version into PlayerSettings.bundleVersion
+        # Repository keeps a placeholder bundleVersion (0.0.0-dev) so dev/Editor
+        # builds don't pretend to be a real release. On tag push we overwrite it
+        # with the tag version so the Player binary's Application.version matches
+        # the GitHub Release. Cache key above is computed before this step runs,
+        # so the placeholder hash keeps cache hits working across releases.
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i.bak "s/^  bundleVersion: .*/  bundleVersion: ${VERSION}/" ProjectSettings/ProjectSettings.asset
+          rm ProjectSettings/ProjectSettings.asset.bak
+          grep '^  bundleVersion:' ProjectSettings/ProjectSettings.asset
+
+      - name: Build ${{ matrix.targetPlatform }}
+        # TODO: pin to a SHA once the desired unity-builder version is verified,
+        # to match the SHA-pinning convention used by test.yml.
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.10f1
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: maplibre-unity
+          versioning: None
+
+      - name: Package archive
+        id: package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCHIVE_BASE="maplibre-unity-${{ matrix.artifactName }}-${VERSION}"
+          BUILD_DIR="build/${{ matrix.targetPlatform }}"
+          if [ ! -d "$BUILD_DIR" ]; then
+            echo "::error::Expected build output directory $BUILD_DIR not found"
+            exit 1
+          fi
+
+          if [ "${{ matrix.archiveExt }}" = "zip" ]; then
+            ARCHIVE_PATH="${ARCHIVE_BASE}.zip"
+            (cd "$BUILD_DIR" && zip -r "../../${ARCHIVE_PATH}" .)
+          else
+            ARCHIVE_PATH="${ARCHIVE_BASE}.tar.gz"
+            tar -czf "$ARCHIVE_PATH" -C "$BUILD_DIR" .
+          fi
+
+          ls -lh "$ARCHIVE_PATH"
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload archive artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build-${{ matrix.artifactName }}
+          path: ${{ steps.package.outputs.archive_path }}
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    needs: [test, build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
@@ -58,6 +169,13 @@ jobs:
             echo '```'
             echo "https://github.com/${{ github.repository }}.git?path=Packages/com.kazukikuriyama.maplibre-unity#${GITHUB_REF_NAME}"
             echo '```'
+            echo ''
+            echo '## Sample player builds'
+            echo ''
+            echo 'Pre-built sample players are attached below. They boot into `HomeScene`, which links every demo scene listed in `EditorBuildSettings`.'
+            echo ''
+            echo '- **Windows (x64)** — `maplibre-unity-windows-'"${VERSION}"'.zip`'
+            echo '- **macOS (Universal)** — `maplibre-unity-macos-'"${VERSION}"'.tar.gz`. Cross-compiled on Linux and unsigned, so the first launch needs `xattr -dr com.apple.quarantine maplibre-unity.app` (or right-click → Open) to clear Gatekeeper.'
             echo 'RELEASE_NOTES_EOF'
           } >> "$GITHUB_OUTPUT"
 
@@ -68,22 +186,37 @@ jobs:
           # Tests are dev-only; exclude from UPM tarball (Tests~ would also work but
           # Unity warns about empty package; simplest is to drop them).
           rm -rf "$STAGING/Tests" "$STAGING/Tests.meta"
-          # Bundle root-level LICENSE / CHANGELOG / THIRD_PARTY_NOTICES into the package
-          # so Package Manager UI can display them without external network calls.
+          # Bundle root-level LICENSE / CHANGELOG into the package so Package
+          # Manager UI can display them without external network calls.
+          # THIRD_PARTY_NOTICES.md already lives inside the package directory
+          # so the cp -R above brings it in — no extra copy needed.
           cp LICENSE "$STAGING/LICENSE.md"
           cp CHANGELOG.md "$STAGING/CHANGELOG.md"
-          cp THIRD_PARTY_NOTICES.md "$STAGING/THIRD_PARTY_NOTICES.md"
           PKG_NAME=$(jq -r .name Packages/com.kazukikuriyama.maplibre-unity/package.json)
           TARBALL="${PKG_NAME}-${GITHUB_REF_NAME#v}.tgz"
           tar -czf "$TARBALL" -C "$STAGING" .
           echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
 
+      - name: Download build artifacts
+        # TODO: pin to a SHA. The matching upload step uses upload-artifact v7;
+        # download-artifact v6+ is required for v7-uploaded artifacts.
+        uses: actions/download-artifact@v6
+        with:
+          path: dist
+          pattern: build-*
+          merge-multiple: true
+
+      - name: List release assets
+        run: ls -lh "$TARBALL" dist/
+
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.body }}
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
-          files: ${{ env.TARBALL }}
+          files: |
+            ${{ env.TARBALL }}
+            dist/*

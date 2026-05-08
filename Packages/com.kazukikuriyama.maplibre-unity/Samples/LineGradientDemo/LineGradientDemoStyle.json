@@ -1,0 +1,45 @@
+{
+    "version": 8,
+    "name": "Line Gradient Demo",
+    "center": [139.7400, 35.6920],
+    "zoom": 9,
+    "sources": {
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet",
+            "attribution": "© OpenMapTiles © OpenStreetMap contributors"
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": { "background-color": "#f4f1ec" }
+        },
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "water",
+            "paint": { "fill-color": "#a0c8f0" }
+        },
+        {
+            "id": "landcover",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "paint": { "fill-color": "#d6e4cc", "fill-opacity": 0.5 }
+        },
+        {
+            "id": "road",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "paint": {
+                "line-color": "#cdcdcd",
+                "line-width": 1.5,
+                "line-opacity": 0.9
+            }
+        }
+    ]
+}

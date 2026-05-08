@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -18,15 +19,13 @@ namespace MapLibre.Unity.Editor
         private SerializedProperty _tileCacheSize;
         private SerializedProperty _tilePoolInitialSize;
         private SerializedProperty _mapCamera;
-        private SerializedProperty _rasterTileShader;
-        private SerializedProperty _backgroundShader;
-        private SerializedProperty _fillShader;
-        private SerializedProperty _lineShader;
         private SerializedProperty _panelSettings;
-        private SerializedProperty _iconShader;
         private SerializedProperty _symbolFont;
 
-        private bool _showStyleJson;
+        // Cache for JSON validation: re-parsing on every OnInspectorGUI repaint
+        // is wasted work, so we only re-run when the text changes.
+        private string _lastValidatedJson;
+        private string _lastValidationError;
 
         private void OnEnable()
         {
@@ -41,12 +40,7 @@ namespace MapLibre.Unity.Editor
             _tileCacheSize = serializedObject.FindProperty("_tileCacheSize");
             _tilePoolInitialSize = serializedObject.FindProperty("_tilePoolInitialSize");
             _mapCamera = serializedObject.FindProperty("_mapCamera");
-            _rasterTileShader = serializedObject.FindProperty("_rasterTileShader");
-            _backgroundShader = serializedObject.FindProperty("_backgroundShader");
-            _fillShader = serializedObject.FindProperty("_fillShader");
-            _lineShader = serializedObject.FindProperty("_lineShader");
             _panelSettings = serializedObject.FindProperty("_panelSettings");
-            _iconShader = serializedObject.FindProperty("_iconShader");
             _symbolFont = serializedObject.FindProperty("_symbolFont");
         }
 
@@ -55,81 +49,90 @@ namespace MapLibre.Unity.Editor
             serializedObject.Update();
 
             // --- Style ---
-            EditorGUILayout.LabelField("Style", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Style (one of Style URL / File / Json is required)", EditorStyles.boldLabel);
 
-            EditorGUILayout.PropertyField(_styleUrl, new GUIContent("Style URL", "URLからスタイルJSONを取得"));
+            EditorGUILayout.PropertyField(_styleUrl, new GUIContent("Style URL (Optional)", "Fetch the style JSON from this URL. Not needed if Style File or Style Json is set."));
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(_styleFile, new GUIContent("Style File", "JSONファイルをドラッグ&ドロップ"));
-            if (EditorGUI.EndChangeCheck())
-            {
-                // ファイルが設定されたらStyleJsonを自動で更新
-                serializedObject.ApplyModifiedProperties();
-                var textAsset = _styleFile.objectReferenceValue as TextAsset;
-                if (textAsset != null)
-                {
-                    _styleJson.stringValue = textAsset.text;
-                    Debug.Log($"[MapLibreMap] スタイルファイルを読み込みました: {textAsset.name} ({textAsset.text.Length} bytes)");
-                }
-            }
+            EditorGUILayout.PropertyField(_styleFile, new GUIContent("Style File (Optional)", "Drag & drop a JSON file here. Not needed if Style URL or Style Json is set."));
 
             bool hasFile = _styleFile.objectReferenceValue != null;
 
             if (hasFile)
             {
-                // ファイル設定時は読み取り専用で内容を表示
-                _showStyleJson = EditorGUILayout.Foldout(_showStyleJson, "Style Json (読み取り専用)");
-                if (_showStyleJson)
-                {
-                    EditorGUI.BeginDisabledGroup(true);
-                    EditorGUILayout.PropertyField(_styleJson, GUIContent.none);
-                    EditorGUI.EndDisabledGroup();
-                }
+                // Mirror the file's text into _styleJson on every repaint so the
+                // read-only TextArea reflects the current file content, even if it
+                // was edited externally after first being attached. The != guard
+                // avoids marking the scene dirty when nothing changed.
+                var textAsset = _styleFile.objectReferenceValue as TextAsset;
+                string fileText = textAsset != null ? textAsset.text : string.Empty;
+                if (_styleJson.stringValue != fileText)
+                    _styleJson.stringValue = fileText;
+
+                EditorGUILayout.LabelField("Style Json (read-only)");
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.PropertyField(_styleJson, GUIContent.none);
+                EditorGUI.EndDisabledGroup();
 
                 EditorGUILayout.HelpBox(
-                    $"スタイルファイル: {(_styleFile.objectReferenceValue as TextAsset)?.name}.json\n" +
-                    "直接編集するには Style File を None に戻してください",
+                    $"Style file: {textAsset?.name}.json\n" +
+                    "Reset Style File to None to edit the JSON inline.",
                     MessageType.Info);
             }
             else
             {
-                _showStyleJson = EditorGUILayout.Foldout(_showStyleJson, "Style Json (直接編集)");
-                if (_showStyleJson)
-                {
-                    EditorGUILayout.PropertyField(_styleJson, GUIContent.none);
-                }
+                EditorGUILayout.LabelField("Style Json (Optional, inline edit)");
+                EditorGUILayout.PropertyField(_styleJson, GUIContent.none);
 
                 if (!string.IsNullOrEmpty(_styleUrl.stringValue))
                 {
-                    EditorGUILayout.HelpBox("スタイルURL からロードします", MessageType.Info);
+                    EditorGUILayout.HelpBox("Loading from Style URL.", MessageType.Info);
                 }
                 else if (!string.IsNullOrEmpty(_styleJson.stringValue))
                 {
-                    EditorGUILayout.HelpBox("Style Json を直接使用します", MessageType.Info);
+                    EditorGUILayout.HelpBox("Using the inline Style Json.", MessageType.Info);
                 }
                 else
                 {
                     EditorGUILayout.HelpBox(
-                        "Style File にJSONファイルをドラッグ&ドロップするか、Style URL を設定してください",
+                        "Drag & drop a JSON file onto Style File, or set a Style URL.",
                         MessageType.Warning);
                 }
+            }
+
+            // Validate the JSON content (covers both inline edits and file-backed
+            // assignments — a corrupt file is just as broken as a corrupt inline string).
+            if (!string.IsNullOrEmpty(_styleJson.stringValue))
+            {
+                string error = GetCachedValidationError(_styleJson.stringValue);
+                if (error != null)
+                    EditorGUILayout.HelpBox($"Invalid Style JSON: {error}", MessageType.Error);
             }
 
             EditorGUILayout.Space();
 
             // --- Initial View ---
-            // Detect whether the style JSON already provides center/zoom.
-            // When it does, those Inspector fields are overridden and shown as disabled.
-            bool styleHasCenter = false;
-            bool styleHasZoom = false;
+            // Inspector fields override the style JSON when set (matches MapLibre GL JS
+            // constructor options). A field is "unset" when its value is NaN — the
+            // effective value then comes from the style JSON (or 0 if neither has it).
+            double? styleZoom = null;
+            double? styleLng = null;
+            double? styleLat = null;
+            double? stylePitch = null;
+            double? styleBearing = null;
             string styleJson = GetEffectiveStyleJson();
             if (!string.IsNullOrEmpty(styleJson))
             {
                 try
                 {
                     var obj = JObject.Parse(styleJson);
-                    styleHasCenter = obj["center"] != null;
-                    styleHasZoom = obj["zoom"] != null;
+                    styleZoom = (double?)obj["zoom"];
+                    stylePitch = (double?)obj["pitch"];
+                    styleBearing = (double?)obj["bearing"];
+                    if (obj["center"] is JArray centerArr && centerArr.Count >= 2)
+                    {
+                        styleLng = (double?)centerArr[0];
+                        styleLat = (double?)centerArr[1];
+                    }
                 }
                 catch
                 {
@@ -137,63 +140,122 @@ namespace MapLibre.Unity.Editor
                 }
             }
 
-            EditorGUILayout.LabelField("Initial View", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Initial View (overrides style JSON when set)", EditorStyles.boldLabel);
 
-            if (styleHasCenter)
-            {
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.PropertyField(_initialLongitude);
-                EditorGUILayout.PropertyField(_initialLatitude);
-                EditorGUI.EndDisabledGroup();
-                EditorGUILayout.HelpBox("center はスタイル JSON で設定済み", MessageType.None);
-            }
-            else
-            {
-                EditorGUILayout.PropertyField(_initialLongitude);
-                EditorGUILayout.PropertyField(_initialLatitude);
-            }
-
-            if (styleHasZoom)
-            {
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.PropertyField(_initialZoom);
-                EditorGUI.EndDisabledGroup();
-                EditorGUILayout.HelpBox("zoom はスタイル JSON で設定済み", MessageType.None);
-            }
-            else
-            {
-                EditorGUILayout.PropertyField(_initialZoom);
-            }
-
-            EditorGUILayout.PropertyField(_initialBearing);
-            EditorGUILayout.PropertyField(_initialPitch);
+            DrawOverrideDouble(_initialLongitude, "Initial Longitude", "longitude", styleLng);
+            DrawOverrideDouble(_initialLatitude, "Initial Latitude", "latitude", styleLat);
+            DrawOverrideFloat(_initialZoom, "Initial Zoom", "zoom", styleZoom);
+            DrawOverrideFloat(_initialBearing, "Initial Bearing", "bearing", styleBearing);
+            DrawOverrideFloat(_initialPitch, "Initial Pitch", "pitch", stylePitch);
 
             EditorGUILayout.Space();
 
             // --- Performance ---
-            EditorGUILayout.LabelField("Performance", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_tileCacheSize);
-            EditorGUILayout.PropertyField(_tilePoolInitialSize);
+            EditorGUILayout.LabelField("Performance (all Optional)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_tileCacheSize, new GUIContent("Tile Cache Size (Optional)"));
+            EditorGUILayout.PropertyField(_tilePoolInitialSize, new GUIContent("Tile Pool Initial Size (Optional)"));
 
             EditorGUILayout.Space();
 
             // --- References ---
             EditorGUILayout.LabelField("References", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_mapCamera);
-            EditorGUILayout.PropertyField(_rasterTileShader);
-            EditorGUILayout.PropertyField(_backgroundShader);
-            EditorGUILayout.PropertyField(_fillShader);
-            EditorGUILayout.PropertyField(_lineShader);
-            EditorGUILayout.PropertyField(_iconShader);
-            EditorGUILayout.PropertyField(_panelSettings);
+            EditorGUILayout.PropertyField(_mapCamera, new GUIContent("Map Camera (Optional)", "Falls back to Camera.main when unset."));
+            EditorGUILayout.PropertyField(_panelSettings, new GUIContent("Panel Settings", "PanelSettings asset for UI Toolkit (required)."));
 
             EditorGUILayout.Space();
 
             // --- Text ---
-            EditorGUILayout.LabelField("Text", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_symbolFont, new GUIContent("Symbol Font", "TMP_FontAsset for map labels. Use MapLibre > Font Setup to generate."));
+            EditorGUILayout.LabelField("Text (all Optional)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_symbolFont, new GUIContent("Symbol Font (Optional)", "TMP_FontAsset for map labels. Falls back to the TMP default when unset. Use MapLibre > Font Setup to generate."));
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private static void DrawOverrideFloat(SerializedProperty property, string label, string keyName, double? styleValue)
+        {
+            bool isSet = !float.IsNaN(property.floatValue);
+            EditorGUILayout.BeginHorizontal();
+            if (isSet)
+            {
+                EditorGUILayout.PropertyField(property, new GUIContent(label));
+                if (GUILayout.Button("Use style", GUILayout.Width(80)))
+                    property.floatValue = float.NaN;
+            }
+            else
+            {
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.TextField(label, FormatStyleHint(keyName, styleValue));
+                EditorGUI.EndDisabledGroup();
+                if (GUILayout.Button("Override", GUILayout.Width(80)))
+                    property.floatValue = styleValue.HasValue ? (float)styleValue.Value : 0f;
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static void DrawOverrideDouble(SerializedProperty property, string label, string keyName, double? styleValue)
+        {
+            bool isSet = !double.IsNaN(property.doubleValue);
+            EditorGUILayout.BeginHorizontal();
+            if (isSet)
+            {
+                EditorGUILayout.PropertyField(property, new GUIContent(label));
+                if (GUILayout.Button("Use style", GUILayout.Width(80)))
+                    property.doubleValue = double.NaN;
+            }
+            else
+            {
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.TextField(label, FormatStyleHint(keyName, styleValue));
+                EditorGUI.EndDisabledGroup();
+                if (GUILayout.Button("Override", GUILayout.Width(80)))
+                    property.doubleValue = styleValue ?? 0.0;
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static string FormatStyleHint(string keyName, double? styleValue) =>
+            styleValue.HasValue
+                ? $"(using style.{keyName} = {styleValue.Value})"
+                : $"(using default 0 — style has no {keyName})";
+
+        private string GetCachedValidationError(string json)
+        {
+            if (json != _lastValidatedJson)
+            {
+                _lastValidatedJson = json;
+                _lastValidationError = ValidateStyleJson(json);
+            }
+            return _lastValidationError;
+        }
+
+        private static string ValidateStyleJson(string json)
+        {
+            JObject obj;
+            try
+            {
+                obj = JObject.Parse(json);
+            }
+            catch (JsonReaderException e)
+            {
+                return $"parse error at line {e.LineNumber}, col {e.LinePosition}: {e.Message}";
+            }
+            catch (System.Exception e)
+            {
+                return e.Message;
+            }
+
+            if (obj["version"] == null)
+                return "missing required field \"version\".";
+            if (obj["version"].Type != JTokenType.Integer)
+                return "\"version\" must be an integer (current spec uses 8).";
+            if (obj["sources"] == null && obj["layers"] == null)
+                return "style must define at least one of \"sources\" or \"layers\".";
+            if (obj["layers"] != null && obj["layers"].Type != JTokenType.Array)
+                return "\"layers\" must be an array.";
+            if (obj["sources"] != null && obj["sources"].Type != JTokenType.Object)
+                return "\"sources\" must be an object.";
+
+            return null;
         }
 
         /// <summary>

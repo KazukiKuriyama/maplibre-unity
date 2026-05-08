@@ -137,6 +137,21 @@ namespace MapLibre.Unity.CameraControl
         }
 
         /// <summary>
+        /// Re-sync the smooth-damped zoom target with the current map state.
+        /// Call this when MapState.Zoom is changed by external code
+        /// (SetZoom / SetStyle / camera teleport) so ApplySmoothZoom doesn't
+        /// quietly damp the new value back toward the previously-cached
+        /// target. User input (scroll, pinch, double-click) updates
+        /// <c>_targetZoom</c> on its own and never needs this hook.
+        /// </summary>
+        public void SyncTargetFromMapState()
+        {
+            if (_mapState == null) return;
+            _targetZoom = _mapState.Zoom;
+            _zoomVelocity = 0f;
+        }
+
+        /// <summary>
         /// Set a callback that returns true when the pointer is over a UI element
         /// (marker, popup, etc.) and map input should be suppressed.
         /// </summary>

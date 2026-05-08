@@ -110,7 +110,13 @@ namespace MapLibre.Unity.Rendering
         /// </summary>
         public bool InvalidateLayer(string layerId)
         {
-            if (_vectorRenderers.TryGetValue(layerId, out var vr)) { vr.Clear(); return true; }
+            // Vector (Fill/Line) uses an in-place rebuild path: the prior
+            // GameObjects stay visible until their replacements arrive, so
+            // SetFeatureState updates don't flicker the layer's other
+            // features. Circle/Heatmap/FillExtrusion/Symbol still take the
+            // hard Clear() path; can be migrated when those layer types
+            // start exercising feature-state in real demos.
+            if (_vectorRenderers.TryGetValue(layerId, out var vr)) { vr.InvalidateInPlace(); return true; }
             if (_circleRenderers.TryGetValue(layerId, out var cr)) { cr.Clear(); return true; }
             if (_heatmapRenderers.TryGetValue(layerId, out var hr)) { hr.Clear(); return true; }
             if (_fillExtrusionRenderers.TryGetValue(layerId, out var fer)) { fer.Clear(); return true; }
@@ -207,7 +213,7 @@ namespace MapLibre.Unity.Rendering
                         }
                         else
                         {
-                            var rasterRenderer = new RasterTileRenderer(tilePool);
+                            var rasterRenderer = new RasterTileRenderer(tilePool, vectorLayerOrder);
                             // Honor raster-fade-duration (in milliseconds per spec) → seconds.
                             var rasterPaint = StyleParser.ParseRasterPaint(layer.Paint);
                             rasterRenderer.FadeDurationSeconds = rasterPaint.FadeDuration / 1000f;
@@ -342,11 +348,12 @@ namespace MapLibre.Unity.Rendering
                         return true;
                     }
                     if (_rasterRenderers.ContainsKey(layer.Id)) return false;
-                    var newRaster = new RasterTileRenderer(_tilePool);
+                    var newRaster = new RasterTileRenderer(_tilePool, _nextLayerOrder);
                     var newRasterPaint = StyleParser.ParseRasterPaint(layer.Paint);
                     newRaster.FadeDurationSeconds = newRasterPaint.FadeDuration / 1000f;
                     _rasterRenderers[layer.Id] = newRaster;
                     _allTileRenderers[layer.Id] = newRaster;
+                    _nextLayerOrder++;
                     return true;
                 }
 
@@ -681,8 +688,8 @@ namespace MapLibre.Unity.Rendering
         public IReadOnlyList<string> HillshadeLayerIds => _hillshadeLayerIds;
 
         /// <summary>
-        /// メインスレッドの Update で毎フレーム呼び出す。
-        /// バックグラウンドで計算されたメッシュデータを Unity オブジェクトに変換する。
+        /// Call once per frame from the main-thread Update.
+        /// Promotes mesh data computed on background threads into Unity objects.
         /// </summary>
         public void ProcessMeshQueues()
         {

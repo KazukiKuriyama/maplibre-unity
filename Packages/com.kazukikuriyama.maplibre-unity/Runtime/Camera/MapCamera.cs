@@ -70,19 +70,30 @@ namespace MapLibre.Unity.CameraControl
             transform.localPosition = position;
             transform.localRotation = Quaternion.Euler(90f - pitch, bearing, 0f);
 
-            // Adjust clipping planes based on camera height + pitch so the visible
-            // ground stays inside the frustum at any tilt. The far-plane multiplier
-            // grows with pitch so the horizon (visible at high pitch) isn't clipped:
-            // tan(pitch) blows up near 90°, so we cap conservatively. LOD tile
-            // selection keeps tile counts bounded even when the far plane is
-            // pushed out for steep pitches.
-            if (_autoAdjustClipPlanes && _camera != null)
-            {
-                float distToGround = height / Mathf.Max(Mathf.Cos(pitchRad), 0.01f);
-                float farMultiplier = Mathf.Lerp(4f, 80f, Mathf.Clamp01(pitch / 80f));
-                _camera.nearClipPlane = Mathf.Max(distToGround * 0.001f, 0.01f);
-                _camera.farClipPlane = distToGround * farMultiplier;
-            }
+            AdjustClipPlanes(height, pitch);
+        }
+
+        /// <summary>
+        /// Adjust near/far clip planes based on camera height + pitch so the
+        /// visible ground stays inside the frustum at any tilt. The far-plane
+        /// multiplier grows with pitch so the horizon (visible at high pitch)
+        /// isn't clipped: tan(pitch) blows up near 90°, so we cap conservatively.
+        /// LOD tile selection keeps tile counts bounded even when the far plane
+        /// is pushed out for steep pitches.
+        ///
+        /// Public so external rigs (FreeCameraOptions / Cinemachine) can keep
+        /// the frustum honest after they move the transform — without this,
+        /// orbit / dolly setups whose camera-to-target distance exceeds the
+        /// map-driven far plane render only background.
+        /// </summary>
+        public void AdjustClipPlanes(float height, float pitch)
+        {
+            if (!_autoAdjustClipPlanes || _camera == null) return;
+            float pitchRad = pitch * Mathf.Deg2Rad;
+            float distToGround = height / Mathf.Max(Mathf.Cos(pitchRad), 0.01f);
+            float farMultiplier = Mathf.Lerp(4f, 80f, Mathf.Clamp01(pitch / 80f));
+            _camera.nearClipPlane = Mathf.Max(distToGround * 0.001f, 0.01f);
+            _camera.farClipPlane = distToGround * farMultiplier;
         }
 
         /// <summary>

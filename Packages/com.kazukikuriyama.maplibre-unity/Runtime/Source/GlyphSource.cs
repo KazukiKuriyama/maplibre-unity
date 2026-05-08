@@ -217,14 +217,18 @@ namespace MapLibre.Unity.Source
                 yield break;
             }
 
-            // Pack every glyph into the atlas. The PBF could carry multiple
-            // fontstacks (rare — only when the URL template uses a comma-
-            // joined name); we honour all of them.
+            // Pack every glyph into the atlas under the *requested* fontstack
+            // name. The PBF's internal Stack.Name often differs from what the
+            // style asked for (servers normalise / canonicalise), so keying
+            // by the request makes SdfTextMeshBuilder.TryGet(fontstack, cp)
+            // succeed with the same name the style used. Multi-stack PBFs
+            // (rare — comma-joined URL templates) merge their glyphs together
+            // under the same key, matching MapLibre GL JS behaviour where the
+            // first stack to provide a codepoint wins.
             foreach (var stack in parsed.Stacks)
             {
-                if (string.IsNullOrEmpty(stack.Name)) continue;
                 foreach (var g in stack.Glyphs)
-                    _atlas.Add(stack.Name, g);
+                    _atlas.Add(fontstack, g);
             }
 
             _ranges[(fontstack, rangeStart)] = RangeState.Loaded;
