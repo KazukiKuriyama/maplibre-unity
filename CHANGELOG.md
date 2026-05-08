@@ -8,6 +8,32 @@ once 1.0 is cut. The history here is curated from commit messages — see
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-08
+
+### Changed
+- **Vector tile parse timeouts are now logged as warnings** instead of errors.
+  Slow background parses that exceed the 90s budget are transient (high load
+  / slow tiles) and don't indicate a real fault, so the Unity console no
+  longer shows them as red errors. The `MapEventType.Error` event still
+  fires so user code that subscribes to it keeps hearing about the failure.
+
+### Internal
+- `MapLibreMap.FireError` grew an `isTransient: bool` parameter that switches
+  the Unity console log level between `LogWarning` and `LogError` while
+  keeping the fired `MapEvent` shape unchanged. Vector tile load callbacks
+  now flag timeouts via this parameter.
+- Sample player builds: `Application.version` is now sourced from the tag at
+  CI time. `ProjectSettings.bundleVersion` stays at the placeholder
+  `0.0.0-dev` in-repo, and the release workflow `sed`-injects the tag
+  version (`${GITHUB_REF_NAME#v}`) into PlayerSettings before unity-builder
+  runs. Editor / dev builds keep showing `0.0.0-dev` so they don't pretend
+  to be a real release.
+- Test workflow: `EditMode` and `PlayMode` now run sequentially on a single
+  runner (was: matrix with two parallel runners). Avoids occupying two
+  Unity license seats simultaneously and shares the `Library/` cache. Job
+  name is `Tests`; per-mode results are still surfaced as separate
+  `EditMode Test Results` / `PlayMode Test Results` check annotations.
+
 ## [0.2.0] - 2026-05-08
 
 ### Changed

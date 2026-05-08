@@ -788,7 +788,11 @@ namespace MapLibre.Unity
                             (id, error) =>
                             {
                                 _tileManager.SetTileState(capturedTileId, TileState.Error);
-                                FireError($"Vector tile {id} failed: {error}", capturedSourceId);
+                                // Parse timeouts come from VectorTileSource cancelling a slow
+                                // background parse — transient under load, not a real fault.
+                                bool isTransient = error != null && error.StartsWith("Parse timeout");
+                                FireError($"Vector tile {id} failed: {error}", capturedSourceId,
+                                    isTransient: isTransient);
                             }
                         );
                     }

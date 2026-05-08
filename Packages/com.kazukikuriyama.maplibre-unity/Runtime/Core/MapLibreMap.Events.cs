@@ -81,9 +81,17 @@ namespace MapLibre.Unity
                 IsSourceLoaded = isLoaded,
             });
 
-        private void FireError(string message, string sourceId = null, Exception exception = null)
+        private void FireError(string message, string sourceId = null, Exception exception = null,
+            bool isTransient = false)
         {
-            Debug.LogError($"[MapLibreMap] {message}");
+            // Transient failures (network blips, parse timeouts on slow tiles)
+            // happen during normal use — log as warning to keep the Unity
+            // console actionable. The MapEvent still fires as Error so user
+            // code that subscribes to MapEventType.Error still hears about it.
+            if (isTransient)
+                Debug.LogWarning($"[MapLibreMap] {message}");
+            else
+                Debug.LogError($"[MapLibreMap] {message}");
             _eventSystem.Fire(new MapEvent(MapEventType.Error, this)
             {
                 ErrorMessage = message,
