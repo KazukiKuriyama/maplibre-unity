@@ -117,7 +117,7 @@ jobs:
       - name: Build WebGL
         # TODO: pin to a SHA once the desired unity-builder version is verified,
         # to match the SHA-pinning convention used by test.yml.
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
