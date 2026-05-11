@@ -137,7 +137,7 @@ jobs:
         # at the artifact root. Pointing at build/WebGL would put the site at
         # /maplibre-unity/ inside Pages, returning 404 for the configured
         # repo path.
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v4.0.0
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v4.0.0
         with:
           path: build/WebGL/maplibre-unity
 
