@@ -39,6 +39,7 @@ namespace MapLibre.Unity.Rendering
         private Shader _lineShader;
         private Shader _linePatternShader;
         private Shader _lineGradientShader;
+        private Shader _backgroundShader;
         private Shader _backgroundPatternShader;
         // Resolves the source for a layer to its declared lineMetrics flag,
         // gating line-gradient (per Style Spec). MapLibreMap supplies it.
@@ -150,6 +151,7 @@ namespace MapLibre.Unity.Rendering
             _linePatternShader = linePatternShader;
             _lineGradientShader = lineGradientShader;
             _lineMetricsResolver = lineMetricsResolver;
+            _backgroundShader = backgroundShader;
             _backgroundPatternShader = backgroundPatternShader;
             _circleShader = circleShader;
             _fillExtrusionShader = fillExtrusionShader;
@@ -180,16 +182,7 @@ namespace MapLibre.Unity.Rendering
                 {
                     case LayerType.Background:
                     {
-                        _backgroundPaint = StyleParser.ParseBackgroundPaint(layer.Paint);
-                        _backgroundRenderer = new BackgroundRenderer();
-                        _backgroundRenderer.Initialize(mapRoot, backgroundShader,
-                            _backgroundPaint.ResolveBackgroundColor(0f),
-                            _backgroundPaint.ResolveOpacity(0f),
-                            _backgroundPatternShader, spriteAtlas);
-                        var initialPattern = _backgroundPaint.ResolveBackgroundPattern(0f);
-                        if (!string.IsNullOrEmpty(initialPattern))
-                            _backgroundRenderer.UpdatePattern(initialPattern,
-                                _backgroundPaint.ResolveOpacity(0f));
+                        EnsureBackgroundRenderer(layer);
                         break;
                     }
                     case LayerType.Raster:
@@ -328,6 +321,36 @@ namespace MapLibre.Unity.Rendering
         }
 
         /// <summary>
+        /// Create or refresh the background renderer for <paramref name="layer"/>.
+        /// Shared by Initialize()'s constructor-time Background case and
+        /// AddRendererForLayer's dynamic-AddLayer case so both paths apply
+        /// identical handling. Reuses <see cref="_backgroundRenderer"/> if one
+        /// already exists (the Style Spec allows at most one background layer)
+        /// instead of allocating a second.
+        /// </summary>
+        private void EnsureBackgroundRenderer(LayerDefinition layer)
+        {
+            _backgroundPaint = StyleParser.ParseBackgroundPaint(layer.Paint);
+            if (_backgroundRenderer == null)
+            {
+                _backgroundRenderer = new BackgroundRenderer();
+                _backgroundRenderer.Initialize(_mapRoot, _backgroundShader,
+                    _backgroundPaint.ResolveBackgroundColor(0f),
+                    _backgroundPaint.ResolveOpacity(0f),
+                    _backgroundPatternShader, _spriteAtlas);
+            }
+            else
+            {
+                _backgroundRenderer.UpdateColor(_backgroundPaint.ResolveBackgroundColor(0f),
+                    _backgroundPaint.ResolveOpacity(0f));
+            }
+            var initialPattern = _backgroundPaint.ResolveBackgroundPattern(0f);
+            if (!string.IsNullOrEmpty(initialPattern))
+                _backgroundRenderer.UpdatePattern(initialPattern,
+                    _backgroundPaint.ResolveOpacity(0f));
+        }
+
+        /// <summary>
         /// Create a renderer for a dynamically added layer.
         /// Returns true if the renderer was created successfully.
         /// </summary>
@@ -335,6 +358,14 @@ namespace MapLibre.Unity.Rendering
         {
             switch (layer.Type)
             {
+                case LayerType.Background:
+                    // true here means "handled" (created or reused), not "newly
+                    // created" -- the Style Spec allows at most one background
+                    // layer, so a repeat call updates the existing renderer
+                    // instead of signalling failure.
+                    EnsureBackgroundRenderer(layer);
+                    return true;
+
                 case LayerType.Raster:
                 {
                     var sourceType = _sourceTypeResolver?.Invoke(layer.Source);
@@ -446,6 +477,12 @@ namespace MapLibre.Unity.Rendering
         {
             switch (layer.Type)
             {
+                case LayerType.Background:
+                    _backgroundRenderer?.Dispose();
+                    _backgroundRenderer = null;
+                    _backgroundPaint = null;
+                    break;
+
                 case LayerType.Raster:
                     if (_rasterRenderers.TryGetValue(layer.Id, out var rr))
                     {
