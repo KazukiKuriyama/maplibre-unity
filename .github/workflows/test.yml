@@ -60,7 +60,7 @@ jobs:
 
       - name: Run EditMode tests
         id: editmode
-        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4.4.0
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -78,7 +78,7 @@ jobs:
         # if: always() so PlayMode still runs when EditMode fails — both
         # results show up as separate check annotations regardless.
         if: always()
-        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4.4.0
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -93,28 +93,28 @@ jobs:
 
       - name: Upload EditMode test results
         if: always() && steps.editmode.outputs.artifactsPath != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Test results (EditMode)
           path: ${{ steps.editmode.outputs.artifactsPath }}
 
       - name: Upload PlayMode test results
         if: always() && steps.playmode.outputs.artifactsPath != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Test results (PlayMode)
           path: ${{ steps.playmode.outputs.artifactsPath }}
 
       - name: Upload EditMode coverage results
         if: always() && steps.editmode.outputs.coveragePath != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Coverage results (EditMode)
           path: ${{ steps.editmode.outputs.coveragePath }}
 
       - name: Upload PlayMode coverage results
         if: always() && steps.playmode.outputs.coveragePath != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Coverage results (PlayMode)
           path: ${{ steps.playmode.outputs.coveragePath }}
